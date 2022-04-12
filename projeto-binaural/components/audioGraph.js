@@ -58,6 +58,6 @@ class AudioGraph {
     }
 }
 
-export {
+export default {
    audioContext, AudioGraph
 };
