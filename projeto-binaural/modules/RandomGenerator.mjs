@@ -73,8 +73,8 @@ class RandomGenerator {
 }
 
 //TEST
-let generator = new RandomGenerator();
-generator.play();
+/*let generator = new RandomGenerator();
+generator.play();*/
   //setRandomOffset();
 
 export {

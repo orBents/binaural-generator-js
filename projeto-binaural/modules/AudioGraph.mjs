@@ -1,8 +1,7 @@
-import { RandomGenerator } from './RandomGenerator';
+import { RandomGenerator } from './RandomGenerator.mjs';
 
 const AudioContext = window.AudioContext || window.webkitAudioContext;
-const audioContext = new AudioContext();
-const destination = audioContext.destination;
+
 let initialised = false;    // flag to store singleton state init
 
 class AudioGraph {
@@ -13,8 +12,12 @@ class AudioGraph {
         this.state = {
             randomGenerator: new RandomGenerator()
         };
+        const audioContext = new AudioContext();
+        const destination = audioContext.destination;
         const baseNode = audioContext.createOscillator();
         const beatNode = audioContext.createOscillator();
+        this.audioContext = audioContext;
+        this.destination = destination;
         this.baseNode = baseNode;
         this.beatNode = beatNode;
 
@@ -45,7 +48,7 @@ class AudioGraph {
             this.baseNode.frequency.value = frequency; // use a number input, in hertz
             this.beatNode.frequency.value = frequency + offset;  // use a range slider (+-60Hz)
         } catch(e) {
-            audioContext.suspend();
+            this.audioContext.suspend();
             throw e;
         }
         return {frequency, offset};
@@ -58,6 +61,6 @@ class AudioGraph {
     }
 }
 
-export default {
-   audioContext, AudioGraph
+export {
+   AudioGraph
 };
