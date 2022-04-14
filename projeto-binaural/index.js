@@ -16,15 +16,15 @@ let stopPlay = () => {
 }
 
 let init = (event) => {
-    console.log("executou");
     event.preventDefault();
     
     if(isPlaying){
         stopPlay();
-        btnPlay.innerHTML = "Pause";
+        btnPlay.classList.remove("paused");
+        
     }else{
         onPlay();
-        btnPlay.innerHTML = "Play";
+        btnPlay.classList.toggle("paused");
     }
     console.log(`State: ${isPlaying}`);
 }
