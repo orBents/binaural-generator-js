@@ -1,0 +1,75 @@
+span {
+    width: 3px;
+    height: 100%;
+    background-color: #22223b;
+    border-radius: 3px;
+    transform-origin: bottom;
+    animation-name: bounce;
+    animation-duration: 5.2s;
+    animation-timing-function: ease;
+    animation-direction: alternate;
+    animation-iteration-count: infinite;
+    content: '';
+}
+span.paused {
+    animation-duration: 0.2s;
+    animation-iteration-count: 1;
+    background-color: #9b9b9b;
+}
+
+span:nth-of-type(2) {
+    animation-delay: -2.2s;
+    /* Start at the end of animation */
+}
+
+span:nth-of-type(3) {
+    animation-delay: -3.7s;
+    /* Start mid-way of return of animation */
+}
+
+.icon {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    width: 14px;
+    height: 14px;
+}
+
+@keyframes bounce {
+    10% {
+        transform: scaleY(0.3);
+        /* start by scaling to 30% */
+    }
+
+    20% {
+        transform: scaleY(0.1);
+        /* start by scaling to 10% */
+    }
+
+    30% {
+        transform: scaleY(1);
+        /* scale up to 100% */
+    }
+
+    60% {
+        transform: scaleY(0.5);
+        /* scale down to 50% */
+    }
+
+    80% {
+        transform: scaleY(0.75);
+        /* scale up to 75% */
+    }
+
+    90% {
+        transform: scaleY(0.45);
+        /* scale up to 45% */
+    }
+
+    100% {
+        transform: scaleY(0.6);
+        /* scale down to 60% */
+    }
+    
+}
+

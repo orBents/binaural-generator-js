@@ -14,12 +14,11 @@ class RandomGenerator {
     };
     this.currentFrequencies = currentFrequencies;
 
-    let delay = 100; //1 second to update frequencies
+    let delay = 100; // 1/10 second to update frequencies
     this.delay = delay; 
   }
 
   //FREQUENCY
-
   setBaseGen(currentFrequencies) {   //set random base to use in a incrementation
     for (const frequency in this.currentFrequencies) {
       currentFrequencies[frequency] = this.getRandomInterval(frequency);
@@ -53,29 +52,25 @@ class RandomGenerator {
   }
 
   ///OFFSET
-
   setRandomOffset() { //set random base offset
     return Math.floor(Math.random() * 100) - 60;
   }
 
   //GAIN
-
   setRandomGain() { //set random base offset
     return Math.floor(Math.random());
   }
 
   //PLAY
-
   play() {
     this.currentFrequencies = this.setBaseGen(this.currentFrequencies);
     this.atenuateContinueFrequency(this.currentFrequencies);
   }
 }
-
 //TEST
 /*let generator = new RandomGenerator();
 generator.play();*/
-  //setRandomOffset();
+//setRandomOffset();
 
 export {
   RandomGenerator
