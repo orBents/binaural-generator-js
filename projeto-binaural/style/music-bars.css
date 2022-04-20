@@ -1,8 +1,8 @@
 span {
-    width: 3px;
+    width: 8px;
     height: 100%;
     background-color: #22223b;
-    border-radius: 3px;
+    border-radius: 8px;
     transform-origin: bottom;
     animation-name: bounce;
     animation-duration: 5.2s;
@@ -14,6 +14,7 @@ span {
 span.paused {
     animation-duration: 0.2s;
     animation-iteration-count: 1;
+    transform: scaleY(0.15);
     background-color: #9b9b9b;
 }
 
@@ -31,18 +32,18 @@ span:nth-of-type(3) {
     position: relative;
     display: flex;
     justify-content: space-between;
-    width: 14px;
-    height: 14px;
+    width: 88px;
+    height: 88px;
 }
 
 @keyframes bounce {
     10% {
-        transform: scaleY(0.3);
+        transform: scaleY(0.1);
         /* start by scaling to 30% */
     }
 
     20% {
-        transform: scaleY(0.1);
+        transform: scaleY(0.3);
         /* start by scaling to 10% */
     }
 

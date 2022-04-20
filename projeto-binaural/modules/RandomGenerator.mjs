@@ -1,21 +1,20 @@
+//import { AudioGraph } from "./modules/AudioGraph.mjs";
+
 class RandomGenerator {
   constructor() {
     const BASE_FREQUENCIES = {    //interval of a min/max bineural frequency dict base 
-      'alpha': [8, 13],
+      //'alpha': [8, 13],
       'beta': [13, 30],
       'gamma': [30, 100]
     };
     this.BASE_FREQUENCIES = BASE_FREQUENCIES;
 
     let currentFrequencies = {
-      'alpha': 0,
+      //'alpha': 0,
       'beta': 0,
       'gamma': 0
     };
-    this.currentFrequencies = currentFrequencies;
-
-    let delay = 100; // 1/10 second to update frequencies
-    this.delay = delay; 
+    this.currentFrequencies = currentFrequencies; 
   }
 
   //FREQUENCY
@@ -41,7 +40,7 @@ class RandomGenerator {
     return Object.keys(this.currentFrequencies)[index];
   }
 
-  atenuateContinueFrequency(currentFrequencies) {    //increment or decrement to a base frequency
+  /*atenuateContinueFrequency(currentFrequencies) {    //increment or decrement to a base frequency
     setInterval(() => {
       //let frequency = Math.floor(Math.random() * 3); //choose any base frequency to increment
       let frequency = this.getRandFrequency();
@@ -49,11 +48,11 @@ class RandomGenerator {
       //console.log(`frequency: ${frequency} ${currentFrequencies[frequency]} increment: ${increment} result: ${currentFrequencies[frequency] + increment}`);
       currentFrequencies[frequency] += increment;
     }, this.delay);
-  }
+  }*/
 
   ///OFFSET
   setRandomOffset() { //set random base offset
-    return Math.floor(Math.random() * 100) - 60;
+    return Math.floor(Math.random() * 100) - 20;
   }
 
   //GAIN

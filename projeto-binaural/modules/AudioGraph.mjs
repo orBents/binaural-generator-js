@@ -1,6 +1,8 @@
 import { RandomGenerator } from './RandomGenerator.mjs';
 
 const AudioContext = window.AudioContext || window.webkitAudioContext;
+const audioContext = new AudioContext();
+const destination = audioContext.destination;
 
 let initialised = false;    // flag to store singleton state init
 
@@ -12,12 +14,11 @@ class AudioGraph {
         this.state = {
             randomGenerator: new RandomGenerator()
         };
-        const audioContext = new AudioContext();
-        const destination = audioContext.destination;
+        
         const baseNode = audioContext.createOscillator();
         const beatNode = audioContext.createOscillator();
-        this.audioContext = audioContext;
-        this.destination = destination;
+        //this.audioContext = audioContext;
+        //this.destination = destination;
         this.baseNode = baseNode;
         this.beatNode = beatNode;
 
@@ -62,5 +63,5 @@ class AudioGraph {
 }
 
 export {
-   AudioGraph
+   audioContext, AudioGraph
 };
