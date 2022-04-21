@@ -15,7 +15,7 @@ span.paused {
     animation-duration: 0.2s;
     animation-iteration-count: 1;
     transform: scaleY(0.15);
-    background-color: #9b9b9b;
+    background-color: #4a4e69;
 }
 
 span:nth-of-type(2) {
@@ -32,8 +32,8 @@ span:nth-of-type(3) {
     position: relative;
     display: flex;
     justify-content: space-between;
-    width: 88px;
-    height: 88px;
+    width: 48px;
+    height: 48px;
 }
 
 @keyframes bounce {

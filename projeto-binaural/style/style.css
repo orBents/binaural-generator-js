@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@1,100&display=swap');
 body {
     margin: 0;
     background-color: #ffffff;
@@ -9,43 +10,30 @@ body {
     height: 100%;
     flex-direction: column;
     flex-wrap: nowrap;
-    justify-content: center;
+    justify-content: space-evenly;
     align-items: center;
     align-content: center;
   }
+
   
-  .flex-items:nth-child(1) {
+  .flex-header {
     margin: 2rem;
+    height: 20vh;
     display: block;
-    flex-grow: 0;
-    flex-shrink: 1;
-    flex-basis: auto;
-    align-self: auto;
-    order: 0;
-  }
-  
-  .flex-items:nth-child(2) {
-    margin: 2rem;
-    display: block;
-    flex-grow: 0;
-    flex-shrink: 1;
-    flex-basis: auto;
-    align-self: auto;
-    order: 0;
-  }
-  
-  .flex-items:nth-child(3) {
-    margin: 2rem;
-    display: block;
-    flex-grow: 0;
-    flex-shrink: 1;
-    flex-basis: auto;
-    align-self: auto;
-    order: 0;
   }
 
+  .flex-main {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    margin: 2rem;
+    height: 80vh;
+  }
 #title{
     font-size: 2rem;
+    font-family: 'Roboto', sans-serif;
+    letter-spacing: 2rem;
+    color:#22223b;
 }
 
 .button {
