@@ -25,6 +25,7 @@ generator.setup();
 
 let onPlay = () => {
   let delay = 100;
+  
   audioContext.resume();
   
   interval = setInterval(() => {

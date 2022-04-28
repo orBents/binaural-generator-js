@@ -6,6 +6,39 @@ body {
 }
 
 .flex-container {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  justify-content: space-around;
+  align-items: center;
+  align-content: stretch;
+}
+
+
+.flex-container-controls {
+  display: flex;
+  width: 30vw;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-items: center;
+  align-content: stretch;
+}
+
+.flex-items-controls{
+  padding: 18px;
+}
+
+.volume{
+  font-size: 2rem;
+}
+
+#gamma-volume input{
+  transform: rotate(-90deg);
+}
+/*
+.flex-container {
     display: flex;
     height: 100%;
     flex-direction: column;
@@ -29,7 +62,8 @@ body {
     margin: 2rem;
     height: 80vh;
   }
-#title{
+*/
+  #title{
     font-size: 2rem;
     font-family: 'Roboto', sans-serif;
     letter-spacing: 2rem;

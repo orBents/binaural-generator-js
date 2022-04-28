@@ -26,8 +26,8 @@ class RandomGenerator {
     this.beta = beta;
     this.gamma = gamma;
 
-    beta.changeGain(0.015);
-    gamma.changeGain(0.018);
+    beta.changeGain(0.03);
+    gamma.changeGain(0.03);
   }
 
   //FREQUENCY
@@ -86,9 +86,8 @@ class RandomGenerator {
 
   setup(){
     this.setInitialFrequencies();
-    
-    //this.beta.updateOscillators(this.frequencies.beta.frequency, this.frequencies.beta.offset);
-    //this.gamma.updateOscillators(this.frequencies.gamma.frequency, this.frequencies.gamma.offset);
+    this.beta.updateOscillators(this.frequencies.beta.frequency, this.frequencies.beta.offset);
+    this.gamma.updateOscillators(this.frequencies.gamma.frequency, this.frequencies.gamma.offset);
   }
 
   update(){
