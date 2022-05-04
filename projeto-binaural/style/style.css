@@ -34,7 +34,7 @@ body {
   font-size: 2rem;
 }
 
-#gamma-volume input{
+.volume input{
   transform: rotate(-90deg);
 }
 /*

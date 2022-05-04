@@ -12,11 +12,13 @@ class RandomGenerator {
         interval: [30, 60],
         frequency: null,
         offset: null,
+        gain: 0.2,
       },
       gamma: {
         interval: [50, 100],
         frequency: null,
         offset: null,
+        gain: 0.2,
       },
     };
     this.frequencies = frequencies;

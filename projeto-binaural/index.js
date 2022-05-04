@@ -7,6 +7,8 @@ let isPlaying = false;
 audioContext.suspend();
 
 let btnPlay = document.querySelector("#play-btn");
+let volumeBeta = document.getElementById("volume-beta");
+let volumeGamma = document.getElementById("volume-gamma");
 
 //let bar = document.querySelector("bar");
 let bar1 = document.querySelector("#bar-1");
@@ -17,6 +19,12 @@ bar1.classList.toggle("paused");
 bar2.classList.toggle("paused");
 bar3.classList.toggle("paused");
 console.log(audioContext.state);
+
+console.log(volumeBeta.value)
+volumeBeta.addEventListener('change', function () {
+  console.log(volumeBeta);
+});
+
 
 let interval;
 let generator = new RandomGenerator();
