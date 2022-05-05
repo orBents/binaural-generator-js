@@ -12,13 +12,13 @@ class RandomGenerator {
         interval: [30, 60],
         frequency: null,
         offset: null,
-        gain: 0.2,
+        gain: null,
       },
       gamma: {
         interval: [50, 100],
         frequency: null,
         offset: null,
-        gain: 0.2,
+        gain: null,
       },
     };
     this.frequencies = frequencies;
@@ -27,9 +27,18 @@ class RandomGenerator {
     let gamma = new AudioGraph();
     this.beta = beta;
     this.gamma = gamma;
+    this.beta.changeGain(0.01)
+    this.gamma.changeGain(0.01)
+  }
 
-    beta.changeGain(0.03);
-    gamma.changeGain(0.03);
+  changeBetaGain(ganho){
+    ganho = ganho/1000;
+    this.beta.changeGain(ganho);
+  }
+
+  changeGammaGain(ganho){
+    ganho = ganho/1000;
+    this.gamma.changeGain(ganho);
   }
 
   //FREQUENCY

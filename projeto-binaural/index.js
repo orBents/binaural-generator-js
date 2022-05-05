@@ -18,18 +18,21 @@ let bar3 = document.querySelector("#bar-3");
 bar1.classList.toggle("paused");
 bar2.classList.toggle("paused");
 bar3.classList.toggle("paused");
+
 console.log(audioContext.state);
-
-console.log(volumeBeta.value)
-volumeBeta.addEventListener('change', function () {
-  console.log(volumeBeta);
-});
-
 
 let interval;
 let generator = new RandomGenerator();
 
 generator.setup();
+
+volumeBeta.addEventListener('change', function () {
+  generator.changeBetaGain(volumeBeta.value);
+});
+
+volumeGamma.addEventListener('change', function () {
+  generator.changeGammaGain(volumeGamma.value);
+});
 
 let onPlay = () => {
   let delay = 100;

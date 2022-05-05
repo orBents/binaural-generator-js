@@ -21,9 +21,10 @@
             <button type="button" id="play-btn" class="button"></button>
         </div>
         <div class="flex-container-controls">
-            <div class="flex-items-constrols volume" id="beta-volume">
-                <input type="range" id="volume-beta" class="volume-slider" max="0.4" value="0.2">
-                <p>&beta;</p>
+            <div class="flex-items-controls volume" id="beta-volume">
+                <label for="volume-beta">&beta;</label>
+                <input type="range" id="volume-beta" class="volume-slider" min ="0" max="40" value="20">
+                
             </div>
             <div class="flex-items-controls"id="musicBars">
                 <div class="icon">
@@ -33,8 +34,8 @@
                 </div>
             </div>
             <div class="flex-items-controls volume" id="gamma-volume">
-                <input type="range" id="volume-gamma" class="volume-slider" max="0.4" value="0.2">
-                <p>&gamma;</p>
+                <input type="range" id="volume-gamma" class="volume-slider" min ="0" max="40" value="20">
+                &gamma;
             </div>
          </div>
      </div>

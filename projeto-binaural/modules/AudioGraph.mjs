@@ -52,6 +52,7 @@ class AudioGraph {
   changeGain(gain) {
     gain = parseFloat(gain);
     if (gain < 0 || gain > 0.5) gain = 0.5;
+    console.log("Um Texto? " + gain);
     return (this.gainNode.gain.value = gain); // use a volume slider for the entire component
   }
 }
