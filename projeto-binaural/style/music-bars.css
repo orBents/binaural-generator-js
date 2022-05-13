@@ -1,7 +1,7 @@
 span {
     width: 8px;
     height: 100%;
-    background-color: #22223b;
+    background-color: #7409b7;
     border-radius: 8px;
     transform-origin: bottom;
     animation-name: bounce;
@@ -15,7 +15,7 @@ span.paused {
     animation-duration: 0.2s;
     animation-iteration-count: 1;
     transform: scaleY(0.15);
-    background-color: #4a4e69;
+    background-color: #7409b7;
 }
 
 span:nth-of-type(2) {
