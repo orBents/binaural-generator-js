@@ -34,6 +34,7 @@ class AudioGraph {
     baseNode.start(); // until a user action triggers it.
     beatNode.start();
   }
+  
   updateOscillators(frequency, offset) {
     try {
       frequency = parseInt(frequency);
