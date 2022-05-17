@@ -6,20 +6,19 @@ let initialised = false; // flag to store singleton state init
 
 class AudioGraph {
   constructor() {
-    // each component will now have two oscillators,
-    // one playing the base frequency,
-    // and the other playing the offset frequency
+   
     const baseNode = audioContext.createOscillator();
     const beatNode = audioContext.createOscillator();
-    //this.audioContext = audioContext;
-    //this.destination = destination;
+
     this.baseNode = baseNode;
     this.beatNode = beatNode;
 
     const lPanner = new StereoPannerNode(audioContext, { pan: -1 });
     baseNode.connect(lPanner);
+
     const rPanner = new StereoPannerNode(audioContext, { pan: +1 });
     beatNode.connect(rPanner);
+
     const gainNode = audioContext.createGain();
     this.gainNode = gainNode;
 
@@ -34,16 +33,16 @@ class AudioGraph {
     baseNode.start(); // until a user action triggers it.
     beatNode.start();
   }
-  
+
   updateOscillators(frequency, offset) {
     try {
       frequency = parseInt(frequency);
       offset = parseInt(offset);
       if (Math.abs(frequency > 180)) frequency = 180;
-      if (Math.abs(offset) > 40) offset = Math.sign(offset);
-      if (offset < 0) offset = 0;
-      this.baseNode.frequency.value = frequency; // use a number input, in hertz
-      this.beatNode.frequency.value = frequency + offset; // use a range slider (+-60Hz)
+      if (Math.abs(offset) > frequency + 40) offset = frequency + 40;
+      if (Math.abs(offset) < frequency - 40) offset = frequency - 40;
+      this.baseNode.frequency.value = frequency; // number input in hertz
+      this.beatNode.frequency.value = frequency + offset; // offset in current frequency
     } catch (e) {
       this.audioContext.suspend();
       throw e;
@@ -52,9 +51,12 @@ class AudioGraph {
   }
   changeGain(gain) {
     gain = parseFloat(gain);
-    if (gain < 0 || gain > 0.5) gain = 0.5;
-    console.log("Um Texto? " + gain);
-    return (this.gainNode.gain.value = gain); // use a volume slider for the entire component
+    if (gain > 0.5) {
+      gain = 0.5;
+    } else if(gain < 0){
+      gain = 0;
+    }
+    return (this.gainNode.gain.value = gain); //volume input slider in index
   }
 }
 

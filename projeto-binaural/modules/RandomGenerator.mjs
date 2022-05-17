@@ -15,7 +15,7 @@ class RandomGenerator {
         gain: null,
       },
       gamma: {
-        interval: [50, 100],
+        interval: [70, 100],
         frequency: null,
         offset: null,
         gain: null,
@@ -25,10 +25,12 @@ class RandomGenerator {
 
     let beta = new AudioGraph();
     let gamma = new AudioGraph();
+
     this.beta = beta;
     this.gamma = gamma;
-    this.beta.changeGain(0.01)
-    this.gamma.changeGain(0.01)
+
+    this.beta.changeGain(0.02)
+    this.gamma.changeGain(0.02)
   }
 
   changeBetaGain(ganho){
@@ -51,7 +53,7 @@ class RandomGenerator {
   }
 
   setDirection() {
-    //set direction to a random increment, decrement or sustain
+    //set direction to a random increment, decrement or sustain, 1 ,-1 ,0
     return Math.floor(Math.random() * 3) - 1;
   }
 
@@ -79,16 +81,6 @@ class RandomGenerator {
     return Object.keys(this.currentFrequencies)[index];
   }
 
-  /*atenuateContinueFrequency(currentFrequencies) {    //increment or decrement to a base frequency
-    setInterval(() => {
-      //let frequency = Math.floor(Math.random() * 3); //choose any base frequency to increment
-      let frequency = this.getRandFrequency();
-      let increment = this.setDirection();
-      //console.log(`frequency: ${frequency} ${currentFrequencies[frequency]} increment: ${increment} result: ${currentFrequencies[frequency] + increment}`);
-      currentFrequencies[frequency] += increment;
-    }, this.delay);
-  }*/
-
   ///OFFSET
   setRandomOffset() {
     //set random base offset
@@ -103,8 +95,10 @@ class RandomGenerator {
 
   update(){
     let limit = 40; //offset limit
+
     let beta = this.frequencies.beta;
     let gamma = this.frequencies.gamma;
+
     let bKey = "beta";
     let gKey = "gamma";
 

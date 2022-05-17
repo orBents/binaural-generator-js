@@ -1,7 +1,5 @@
 import { audioContext, AudioGraph } from "./modules/AudioGraph.mjs";
-//import { AudioComponent } from "./modules/AudioComponent.mjs";
 import { RandomGenerator } from "./modules/RandomGenerator.mjs";
-//import { RandomGenerator } from './modules/RandomGenerator.js';
 
 let isPlaying = false;
 audioContext.suspend();
@@ -10,7 +8,6 @@ let btnPlay = document.querySelector("#play-btn");
 let volumeBeta = document.getElementById("volume-beta");
 let volumeGamma = document.getElementById("volume-gamma");
 
-//let bar = document.querySelector("bar");
 let bar1 = document.querySelector("#bar-1");
 let bar2 = document.querySelector("#bar-2");
 let bar3 = document.querySelector("#bar-3");
@@ -18,8 +15,6 @@ let bar3 = document.querySelector("#bar-3");
 bar1.classList.toggle("paused");
 bar2.classList.toggle("paused");
 bar3.classList.toggle("paused");
-
-console.log(audioContext.state);
 
 let interval;
 let generator = new RandomGenerator();
