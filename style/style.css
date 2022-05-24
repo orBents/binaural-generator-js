@@ -71,6 +71,13 @@ color:#7409b7;
   .flex-container {
     margin-top: -100px;
   }
+  #beta-volume{
+    margin-right: 60px;
+  }
+  #gamma-volume {
+    margin-left: 60px;
+  }
+
   .button {
     height: 98px;
     border-color: transparent transparent transparent #7409b7;
