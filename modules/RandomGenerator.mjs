@@ -34,12 +34,10 @@ class RandomGenerator {
   }
 
   changeBetaGain(ganho){
-    ganho = ganho/1000;
     this.beta.changeGain(ganho);
   }
 
   changeGammaGain(ganho){
-    ganho = ganho/1000;
     this.gamma.changeGain(ganho);
   }
 
