@@ -1,0 +1,84 @@
+/* @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300&display=swap');
+*/
+@import url('https://fonts.googleapis.com/css2?family=Baloo+Tamma+2&display=swap');
+
+body {
+  font-family: 'Baloo Tamma 2', sans-serif;
+  margin: 0;
+  background-color: #F0ECFA;
+  height: 100vh;
+  width: 100vw;
+}
+
+.flex-container {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+}
+
+#title{
+  font-size: 2rem;
+  letter-spacing: 1.5rem;
+  color:#22223b;
+}
+
+#beta-title{
+color:#7409b7;
+}
+
+.button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  box-sizing: border-box;
+  width: 0;
+  height: 66px;
+  border-color: transparent transparent transparent #7409b7;
+  transition: 100ms all ease;
+  cursor: pointer;
+  border-style: solid;
+  border-width: 37px 0 37px 60px;
+}
+
+.button.paused {
+  border-style: double;
+  border-width: 0px 0 0px 60px;
+}
+
+.flex-container-controls {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.flex-items-controls{
+  /*padding: 18px;*/
+}
+
+.volume{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 2rem;
+  transform: rotate(-90deg);
+}
+
+@media only screen and (max-width: 600px) {
+  .button {
+    height: 98px;
+    border-color: transparent transparent transparent #7409b7;
+    border-width: 50px 0 50px 80px;
+  }
+  
+  .button.paused {
+    border-width: 0px 0 0px 80px;
+  }
+}
+
+@media only screen and (min-width: 600px) {  
+  .button:hover {
+    border-color: transparent transparent transparent #44086a;
+  }
+}
