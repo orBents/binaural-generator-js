@@ -68,6 +68,9 @@ color:#7409b7;
 }
 
 @media only screen and (max-width: 600px) {
+  .flex-container {
+    margin-top: -8 0px;
+  }
   .button {
     height: 98px;
     border-color: transparent transparent transparent #7409b7;
