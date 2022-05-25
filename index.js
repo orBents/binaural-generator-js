@@ -67,7 +67,3 @@ btnPlay.addEventListener("click", (event) => {
   console.log(`State: ${isPlaying}`);
 });
 
-function toggleMode() {
-  var element = document.body;
-  element.classList.toggle("light-mode");
-}
