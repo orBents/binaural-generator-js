@@ -10,11 +10,18 @@
     <link rel="stylesheet" href="./style/style.css">
     <link rel="stylesheet" href="./style/music-bars.css">
     <link rel="stylesheet" href="./style/volume-range-bar.css">
+    <link rel="stylesheet" href="./style/toggle-button.css">
     <script type="module" src="./index.js"></script>
     <title>biwave</title>
 </head>
 
 <body>
+    <div class="toggle-mode">
+        <label class="switch">
+            <input type="checkbox" onclick="toggleMode()" checked>
+            <span class="slider round"></span>
+          </label>
+    </div>
     <div class="flex-container">
         <div class="flex-items" id="title">
             <h1><b id="beta-title">&beta;</b>iwave</h1>

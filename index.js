@@ -30,7 +30,7 @@ volumeGamma.addEventListener('change', function () {
 });
 
 let onPlay = () => {
-  let delay = 100;
+  let delay = 150;
   
   audioContext.resume();
   
@@ -66,3 +66,8 @@ btnPlay.addEventListener("click", (event) => {
   }
   console.log(`State: ${isPlaying}`);
 });
+
+function toggleMode() {
+  var element = document.body;
+  element.classList.toggle("light-mode");
+}

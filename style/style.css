@@ -9,8 +9,19 @@ body {
   height: 100vh;
   width: 100vw;
 }
+.light-mode {
+  background-color: white;
+  color: black;
+}
 h1{
   color:aliceblue;
+}
+
+#beta-volume{
+  margin-right: 60px;
+}
+#gamma-volume {
+  margin-left: 60px;
 }
 
 .flex-container {

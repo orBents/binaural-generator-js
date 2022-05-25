@@ -1,4 +1,4 @@
-span {
+.bar {
     width: 8px;
     height: 100%;
     background-color: #7409b7;
@@ -11,19 +11,19 @@ span {
     animation-iteration-count: infinite;
     content: '';
 }
-span.paused {
+.bar.paused {
     animation-duration: 0.2s;
     animation-iteration-count: 1;
     transform: scaleY(0.15);
     background-color: #7409b7;
 }
 
-span:nth-of-type(2) {
+.bar:nth-of-type(2) {
     animation-delay: -2.2s;
     /* Start at the end of animation */
 }
 
-span:nth-of-type(3) {
+.bar:nth-of-type(3) {
     animation-delay: -3.7s;
     /* Start mid-way of return of animation */
 }
