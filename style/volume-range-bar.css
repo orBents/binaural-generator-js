@@ -8,6 +8,8 @@
     opacity: 0.7;
     -webkit-transition: .2s;
     transition: opacity .2s;
+    touch-action: none;
+    transform: rotate(-90deg);
   }
   
   .volume-slider::-webkit-slider-thumb {
@@ -27,24 +29,3 @@
     background: #7409b7;
     cursor: pointer;
   }
-
-/*
-.volume-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 25px;
-    height: 25px;
-    border-radius: 50%;
-
-    background: #2796ee;
-    cursor: pointer;
-}
-
-.volume-slider::-moz-range-thumb {
-    width: 25px;
-    height: 25px;
-    border-radius: 50%;
-
-    background: #2796ee;
-    cursor: pointer;
-}*/
