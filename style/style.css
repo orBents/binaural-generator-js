@@ -33,11 +33,10 @@ body {
   flex-direction: column;
   justify-content: space-around;
   align-items: center;
-  margin-top: -80px;
 }
 
 #title{
-  font-size: 2rem;
+  font-size: 1.5rem;
   letter-spacing: 1.5rem;
 }
 
@@ -72,24 +71,19 @@ color:#7409b7;
 
 .flex-container-controls .volume{
   flex-direction: row-reverse;
+  margin-bottom: 2rem;
 }
 .volume{
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: inline-block;
   font-size: 2rem;
-  transform: rotate(-90deg);
 }
 .volume-icon{
-  transform: rotate(90deg);
+  
   width: 3vh;
   height: 3vh;
 }
 
 @media only screen and (max-width: 600px) {
-  .flex-container {
-    margin-top: -120px;
-  }
   #beta-volume{
     margin-right: 40px;
   }

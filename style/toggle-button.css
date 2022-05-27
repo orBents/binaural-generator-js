@@ -1,6 +1,12 @@
 .toggle-mode{
+<<<<<<< HEAD
     display: inline-flex;
     margin: 1rem;
+=======
+    position: fixed;
+    right: 1rem;
+    top: 1rem;
+>>>>>>> 4f6f791ac107368600036679241332a78cead931
 }
 .switch {
     position: relative;
