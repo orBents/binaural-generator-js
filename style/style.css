@@ -75,11 +75,15 @@ color:#7409b7;
 
 .volume {
   font-size: 2rem;
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  transform: rotate(-90deg);
 }
+
 .volume-icon{
   width: 3vh;
   height: 3vh;
+  margin: 5px;
 }
 
 @media only screen and (max-width: 600px) {
