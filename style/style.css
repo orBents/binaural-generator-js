@@ -1,4 +1,4 @@
-/* @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300&display=swap');
+  /* @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300&display=swap');
 */
 @import url('https://fonts.googleapis.com/css2?family=Baloo+Tamma+2&display=swap');
 
@@ -69,13 +69,13 @@ color:#7409b7;
   align-items: center;
 }
 
-.flex-container-controls .volume{
+.flex-container-controls .volume {
   flex-direction: row-reverse;
-  margin-bottom: 2rem;
 }
-.volume{
-  display: inline-block;
+
+.volume {
   font-size: 2rem;
+  display: inline-block;
 }
 .volume-icon{
   width: 3vh;
@@ -83,6 +83,7 @@ color:#7409b7;
 }
 
 @media only screen and (max-width: 600px) {
+  
   #beta-volume{
     margin-right: 40px;
   }
