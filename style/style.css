@@ -70,16 +70,20 @@ color:#7409b7;
   align-items: center;
 }
 
-.flex-items-controls{
-  /*padding: 18px;*/
+.flex-container-controls .volume{
+  flex-direction: row-reverse;
 }
-
 .volume{
   display: flex;
   flex-direction: column;
   align-items: center;
   font-size: 2rem;
   transform: rotate(-90deg);
+}
+.volume-icon{
+  transform: rotate(90deg);
+  width: 3vh;
+  height: 3vh;
 }
 
 @media only screen and (max-width: 600px) {
