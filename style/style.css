@@ -33,6 +33,7 @@ body {
   flex-direction: column;
   justify-content: space-around;
   align-items: center;
+  margin-top: -40px;
 }
 
 #title{
@@ -81,9 +82,10 @@ color:#7409b7;
 }
 
 .volume-icon{
-  width: 3vh;
-  height: 3vh;
+  width: 2vh;
+  height: 2vh;
   margin: 5px;
+  transform: rotate(90deg);
 }
 
 @media only screen and (max-width: 600px) {
@@ -109,5 +111,8 @@ color:#7409b7;
 @media only screen and (min-width: 600px) {  
   .button:hover {
     border-color: transparent transparent transparent #44086a;
+  }
+  .flex-container{
+    margin-top: -40px;
   }
 }
