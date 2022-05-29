@@ -9,6 +9,7 @@
     -webkit-transition: .2s;
     transition: opacity .2s;
     touch-action: none;
+    transform: rotate(-90deg);
   }
   
   .volume-slider::-webkit-slider-thumb {
