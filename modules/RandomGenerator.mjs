@@ -9,13 +9,13 @@ class RandomGenerator {
         offset: null,
       },
       beta: {
-        interval: [30, 60],
+        interval: [30, 50],
         frequency: null,
         offset: null,
         gain: null,
       },
       gamma: {
-        interval: [70, 100],
+        interval: [70, 80],
         frequency: null,
         offset: null,
         gain: null,
@@ -92,7 +92,7 @@ class RandomGenerator {
   }
 
   update(){
-    let limit = 40; //offset limit
+    let limit = 30; //offset limit
 
     let beta = this.frequencies.beta;
     let gamma = this.frequencies.gamma;

@@ -30,7 +30,7 @@ volumeGamma.addEventListener('change', function () {
 });
 
 let onPlay = () => {
-  let delay = 150;
+  let delay = 200;
   
   audioContext.resume();
   

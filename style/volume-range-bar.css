@@ -1,3 +1,8 @@
+.volume {
+  font-size: 2rem;
+  display: inline-flex;
+  align-items: center;
+}
 .volume-slider {
     -webkit-appearance: none;
     width: 100%;
@@ -29,3 +34,9 @@
     background: #7409b7;
     cursor: pointer;
   }
+.volume-icon {
+  width: 2vh;
+  height: 2vh;
+  margin: 5px;
+  margin-top: 70px;
+}

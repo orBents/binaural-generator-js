@@ -8,13 +8,14 @@ body {
   height: 100vh;
   width: 100vw;
 }
-.light-mode {
-  background-color: #F0ECFA;
-  color: black;
+
+#title {
+  font-size: 1.5rem;
+  letter-spacing: 1.5rem;
 }
 
-.title-light-mode {
-  color: #2f2639;
+#beta-title {
+  color: #7409b7;
 }
 
 #beta-volume{
@@ -25,6 +26,15 @@ body {
   margin-left: 60px;
 }
 
+.light-mode {
+  background-color: #F0ECFA;
+  color: black;
+}
+
+.title-light-mode {
+  color: #2f2639;
+}
+
 .flex-container {
   display: flex;
   height: 100%;
@@ -32,15 +42,6 @@ body {
   justify-content: space-around;
   align-items: center;
   margin-top: -5vh;
-}
-
-#title{
-  font-size: 1.5rem;
-  letter-spacing: 1.5rem;
-}
-
-#beta-title{
-color:#7409b7;
 }
 
 .button {
@@ -70,19 +71,6 @@ color:#7409b7;
 
 .flex-container-controls .volume {
   flex-direction: column;
-}
-
-.volume {
-  font-size: 2rem;
-  display: inline-flex;
-  align-items: center;
-}
-
-.volume-icon{
-  width: 2vh;
-  height: 2vh;
-  margin: 5px;
-  margin-top: 70px;
 }
 
 @media only screen and (max-width: 600px) {
