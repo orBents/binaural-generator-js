@@ -80,6 +80,7 @@ body {
   left: 0.8rem;
   bottom: 0.8rem;
 }
+
 .display-info-icon .info-text {
   visibility: hidden;
   width: 160px;
@@ -120,8 +121,35 @@ body {
   }
   
   .button.paused {
-    border-width: 0px 0 0px 80px;
+    border-width: 0px 0px 0px 80px;
   }
+    .info-icon {
+      width: 2.4vh;
+      height: 2.4vh;
+      position: fixed;
+      left: 0.8rem;
+      bottom: 0.8rem;
+    }
+  
+    .display-info-icon .info-text {
+      visibility: hidden;
+      width: 160px;
+      background-color: #807486;
+      color: #ffffff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 3px 0;
+      left: 2rem;
+      bottom: 2rem;
+  
+      /* Position the tooltip */
+      position: absolute;
+      z-index: 1;
+    }
+  
+    .display-info-icon:hover .info-text {
+      visibility: visible;
+    }
 }
 
 @media only screen and (min-width: 600px) {  
