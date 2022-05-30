@@ -73,6 +73,33 @@ body {
   flex-direction: column;
 }
 
+.info-icon{
+  width: 2.4vh;
+  height: 2.4vh;
+  position: fixed;
+  left: 0.8rem;
+  bottom: 0.8rem;
+}
+.display-info-icon .info-text {
+  visibility: hidden;
+  width: 160px;
+  background-color: #807486;
+  color: #ffffff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 3px 0;
+  left: 2rem;
+  bottom: 2rem;
+
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+}
+
+.display-info-icon:hover .info-text {
+  visibility: visible;
+}
+
 @media only screen and (max-width: 600px) {
   
   #beta-volume{

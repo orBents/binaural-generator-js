@@ -34,6 +34,7 @@ class RandomGenerator {
   }
 
   changeBetaGain(ganho){
+    
     this.beta.changeGain(ganho);
   }
 

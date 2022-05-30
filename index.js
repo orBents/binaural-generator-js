@@ -21,11 +21,11 @@ let generator = new RandomGenerator();
 
 generator.setup();
 
-volumeBeta.addEventListener('change', function () {
+volumeBeta.addEventListener('input', function () {
   generator.changeBetaGain(volumeBeta.value);
 });
 
-volumeGamma.addEventListener('change', function () {
+volumeGamma.addEventListener('input', function () {
   generator.changeGammaGain(volumeGamma.value);
 });
 
