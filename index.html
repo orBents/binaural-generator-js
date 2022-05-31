@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#7409b7"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="./static/favicon.png">
@@ -12,7 +13,6 @@
     <link rel="stylesheet" href="./style/volume-range-bar.css">
     <link rel="stylesheet" href="./style/toggle-button.css">
     <script type="module" src="./index.js"></script>
-    <script src="https://kit.fontawesome.com/yourcode.js" crossorigin="anonymous"></script>
     <title>biwave</title>
 </head>
 
@@ -50,7 +50,7 @@
      </div>
      <div class="display-info-icon">
         <img src="./static/icon-info.png" class="info-icon" alt="beta volume" />
-        <span class="info-text">Use fones de ouvido</span>
+        <span class="info-text">use fones de ouvido</span>
      </div>
 </body>
 
@@ -58,13 +58,16 @@
     function registerServiceWorker() {
     // registrando o service worker para navegadores com suporte
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js', { scope: '/' }).then(() => {
+      navigator.serviceWorker.register('sw.js').then(() => {
         console.log('Service Worker registrado com sucesso.');
       }).catch(error => {
         console.log('Service Worker falhou:', error);
       });
     }
   }
+
+  registerServiceWorker();
+
   function toggleMode() {
         var element = document.body;
         element.classList.toggle("light-mode");

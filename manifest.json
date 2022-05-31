@@ -1,9 +1,41 @@
 {
-    "name": "biwave",
-    "theme_color": "#2196f3",
-    "background_color": "#2196f3",
+  "short_name": "Biwave",
+    "name": "Biwave",
+    "lang": "pt",
+    "start_url": "/index.html",
+    "scope": "/index.html",
+    "background_color": "#7409b7",
+    "theme_color": "#7409b7",
+    "dir": "ltr",
     "display": "standalone",
     "orientation": "portrait",
-    "scope": "/index.html",
-    "start_url": "/index.html"
+    "icons": [
+      {
+        "src": "/static/icon/android-chrome-192x192.png",
+        "type": "image/png",
+        "sizes": "192x192"
+      },
+      {
+        "src": "/static/icon/android-chrome-512x512.png",
+        "type": "image/png",
+        "sizes": "512x512"
+      },
+      {
+        "src": "/static/icon/apple-touch-icon.png",
+        "type": "image/png",
+        "sizes": "180x180"
+      },
+      {
+        "src": "/static/icon/favicon-16x16.png",
+        "type": "image/png",
+        "sizes": "16x16"
+      },
+      {
+        "src": "/static/icon/favicon-32x32.png",
+        "type": "image/png",
+        "sizes": "32x32"
+      }
+    ],
+    "prefer_related_applications": false
   }
+  
