@@ -33,9 +33,9 @@ Sua janela será redirecionada para o navegador padrão, onde a aplicação ser�
 
 Este projeto serviu como Trabalho de Conclusão de Curso do ensino superior em Análise e Desenvolvimento de Sistemas, administrado pelo Instituto Federal de São Paulo, Campus Bragança Paulista.
 
-* **Gustavo Almeida de Souza** - *Autor e Desenvovedor* - [GusRed](https://github.com/GusRed)
-* **Jakeson Mateus Pantaleão de.** - *Autor e Desenvovedor* - [jakesonmateus](https://github.com/jakesonmateus)
-* **Vinicius Bento de Souza** - *Autor e Desenvovedor* - [orBents](https://github.com/orBents)
+* **Gustavo Almeida de Souza** - *Autor e Desenvolvedor* - [GusRed](https://github.com/GusRed)
+* **Jakeson Mateus Pantaleão de.** - *Autor e Desenvolvedor* - [jakesonmateus](https://github.com/jakesonmateus)
+* **Vinicius Bento de Souza** - *Autor e Desenvolvedor* - [orBents](https://github.com/orBents)
 
 ## ✒️ Prof. Orientador
 * **Dra. Ana Paula Müller Giancoli** - *Orientadora* - [anagiancoli](https://github.com/anagiancoli)
