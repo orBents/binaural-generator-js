@@ -31,7 +31,7 @@ Sua janela será redirecionada para o navegador padrão, onde a aplicação ser�
 ## ✒️ Autores
 ### Implementação de ondas binaurais como ferramenta de combate ao estresse e ansiedade
 
-Este trabalho serviu como Trabalho de Conclusão de Curso de ensino superior em Análise e Desenvolvimento de Sistemas pelo IFSP Bragança Paulista.
+Este projeto serviu como Trabalho de Conclusão de Curso do ensino superior em Análise e Desenvolvimento de Sistemas, administrado pelo Instituto Federal de São Paulo, Campus Bragança Paulista.
 
 * **Gustavo Almeida de Souza** - *Autor e Desenvovedor* - [GusRed](https://github.com/GusRed)
 * **Jakeson Mateus Pantaleão de.** - *Autor e Desenvovedor* - [jakesonmateus](https://github.com/jakesonmateus)
