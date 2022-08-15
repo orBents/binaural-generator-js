@@ -8,7 +8,7 @@ Para a execução do projeto localmente é indicado o uso do editor de código f
 
 Também é possível acessar a aplicação hospedada como github-page: [BIWAVE](https://orbents.github.io/binaural-generator-js/)
 
-Consulte **Instalação** para saber como instalar o projeto localmente.
+Consulte a área de **Instalação** para saber como executar o projeto localmente.
 
 ### 📋 Pré-requisitos
 
