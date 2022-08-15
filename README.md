@@ -6,7 +6,7 @@ Uma aplicação Web simples e intuitiva desenvolvida em pure js, fazendo uso das
 
 Para a execução do projeto localmente é indicado o uso do editor de código fonte Visual Studio Code, junto com a extensão Live Server, para assim criar um servidor local onde será rodada a aplicação.
 
-Também é possível acessar a aplicação hospedada como github-page [BIWAVE](https://orbents.github.io/binaural-generator-js/)
+Também é possível acessar a aplicação hospedada como github-page: [BIWAVE](https://orbents.github.io/binaural-generator-js/)
 
 Consulte **Instalação** para saber como instalar o projeto localmente.
 
