@@ -29,7 +29,7 @@ Em seguida basta abrir o diretório da aplicação com o editor VSCODE, em segui
 Sua janela será redirecionada para o navegador padrão, onde a aplicação será aberta e estará rodando localmente na sua máquina.
 
 ## ✒️ Autores
-####Implementação de ondas binaurais como ferramenta de combate ao estresse e ansiedade
+#### Implementação de ondas binaurais como ferramenta de combate ao estresse e ansiedade
 
 Este trabalho serviu como Trabalho de Conclusão de Curso de ensino superior em Análise e Desenvolvimento de Sistemas pelo IFSP Bragança Paulista.
 
