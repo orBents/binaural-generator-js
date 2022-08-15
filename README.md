@@ -1,5 +1,5 @@
 # BIWAVE 
-## binaural-generator-js
+### Implementação de ondas binaurais como ferramenta de combate ao estresse e ansiedade
 Uma aplicação Web simples e intuitiva desenvolvida em pure js, fazendo uso das tecnologias JavaScript, CSS e HTML, voltada para a geração de sons randômicos seguindo o padrão Binaural Sound.
 
 ## 🚀 Começando
@@ -31,7 +31,6 @@ Lembre-se de ter a extensão "Live Server" instalada, em seguida:
 Sua janela será redirecionada para o navegador padrão, onde a aplicação será aberta e estará rodando localmente na sua máquina.
 
 ## ✒️ Autores
-### Implementação de ondas binaurais como ferramenta de combate ao estresse e ansiedade
 
 Este projeto serviu como Trabalho de Conclusão de Curso do ensino superior em Análise e Desenvolvimento de Sistemas, administrado pelo Instituto Federal de São Paulo, Campus Bragança Paulista.
 
