@@ -1,6 +1,6 @@
 # BIWAVE 
 ## binaural-generator-js
-Aplicação Web simples e intuitiva desenvolvida em pure js, fazendo uso das tecnologias JavaScript, CSS e HTML, voltada a geração de sons randômicos seguindo o padrão Binaural Sound.
+Uma aplicação Web simples e intuitiva desenvolvida em pure js, fazendo uso das tecnologias JavaScript, CSS e HTML, voltada para a geração de sons randômicos seguindo o padrão Binaural Sound.
 
 ## 🚀 Começando
 
