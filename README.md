@@ -18,7 +18,9 @@ Consulte **Instalação** para saber como instalar o projeto localmente.
 
 ### 🔧 Instalação
 
-Para a instalação local, basta abrir o diretório da aplicação com o editor VSCODE
+Para a instalação local, é necessário fazer o download da pasta com o projeto: [download](https://github.com/orBents/binaural-generator-js/archive/refs/heads/main.zip)
+
+Em seguida basta abrir o diretório da aplicação com o editor VSCODE
 
 ```
 1. Clicar com o botão direito do mouse sobre o arquivo 'index.html'
