@@ -21,6 +21,7 @@ Consulte a área de **Instalação** para saber como executar o projeto localmen
 Para a instalação local, é necessário fazer o download da pasta com o projeto: [download](https://github.com/orBents/binaural-generator-js/archive/refs/heads/main.zip)
 
 Posteriormente, basta abrir o diretório da aplicação com o editor VSCODE;
+
 Lembre-se de ter a extensão "Live Server" instalada, em seguida: 
 
 ```
