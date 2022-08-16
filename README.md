@@ -38,5 +38,5 @@ Este projeto serviu como Trabalho de Conclusão de Curso do ensino superior em A
 * **Jakeson Mateus Pantaleão de Moraes** - *Autor e Desenvolvedor* - [jakesonmateus](https://github.com/jakesonmateus)
 * **Vinicius Bento de Souza** - *Autor e Desenvolvedor* - [orBents](https://github.com/orBents)
 
-## ✒️ Prof. Orientador
+## 🔭 Prof. Orientador
 * **Dra. Ana Paula Müller Giancoli** - *Orientadora* - [anagiancoli](https://github.com/anagiancoli)
