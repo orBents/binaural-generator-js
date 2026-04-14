@@ -31,9 +31,8 @@ const vinylToggle = document.getElementById("vinyl-toggle");
 const grooveToggle = document.getElementById("groove-toggle");
 const oscilloscopeCanvas = document.getElementById("oscilloscope");
 const presetHint = document.getElementById("preset-hint");
-const tabButtons = document.querySelectorAll(".tab-btn");
-const tuningPanel = document.getElementById("panel-tuning");
-const rhythmPanel = document.getElementById("panel-rhythm");
+const tuningCard = document.querySelector(".tuning-card");
+const rhythmCard = document.querySelector(".rhythm-card");
 const modeButtons = document.querySelectorAll(".mode-btn");
 const binauralCapHint = document.getElementById("binaural-cap-hint");
 
@@ -60,22 +59,10 @@ function applyThemeFromPreset(presetName) {
   presetHint.textContent = `${preset.label}: batimento ${preset.beatFrequency}Hz`;
 }
 
-function applyTabUI(tabName) {
-  const tuningActive = tabName === "tuning";
-
-  tabButtons.forEach((button) => {
-    const active = button.dataset.tab === tabName;
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-selected", String(active));
-  });
-
-  tuningPanel.classList.toggle("active", tuningActive);
-  rhythmPanel.classList.toggle("active", !tuningActive);
-  document.body.dataset.activeTab = tabName;
-
-  visualizer.setStrokeColor(
-    tuningActive ? "rgba(15, 255, 243, 0.95)" : "rgba(255, 0, 255, 0.92)"
-  );
+function setActivePanel(panelName) {
+  const isRhythm = panelName === "rhythm";
+  document.body.dataset.activeTab = isRhythm ? "rhythm" : "tuning";
+  visualizer.setStrokeColor(isRhythm ? "rgba(255, 0, 255, 0.92)" : "rgba(64, 224, 208, 0.95)");
 }
 
 function updateBinauralCapUI(state) {
@@ -123,7 +110,7 @@ function applyAudioState(state) {
   lofiEngine.setGrooveEnabled(state.lofi.grooveEnabled);
 
   applyThemeFromPreset(state.binaural.preset);
-  applyTabUI(state.ui.activeTab);
+  setActivePanel("tuning");
 }
 
 setupPresetOptions();
@@ -135,7 +122,6 @@ appState.subscribe((state) => {
   engine.setBeatReferenceVolume(state.lofi.volume);
   syncControlsFromState(state);
   applyThemeFromPreset(state.binaural.preset);
-  applyTabUI(state.ui.activeTab);
   updateBinauralCapUI(state);
 });
 
@@ -235,6 +221,7 @@ grooveToggle.addEventListener("change", (event) => {
 
 modeButtons.forEach((button) => {
   button.addEventListener("click", () => {
+    setActivePanel("rhythm");
     appState.setState({
       lofi: {
         mode: button.dataset.mode,
@@ -245,15 +232,15 @@ modeButtons.forEach((button) => {
   });
 });
 
-tabButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    appState.setState({
-      ui: {
-        activeTab: button.dataset.tab,
-      },
-    });
-  });
-});
+if (tuningCard) {
+  tuningCard.addEventListener("pointerdown", () => setActivePanel("tuning"));
+  tuningCard.addEventListener("focusin", () => setActivePanel("tuning"));
+}
+
+if (rhythmCard) {
+  rhythmCard.addEventListener("pointerdown", () => setActivePanel("rhythm"));
+  rhythmCard.addEventListener("focusin", () => setActivePanel("rhythm"));
+}
 
 btnPlay.addEventListener("click", async (event) => {
   event.preventDefault();
