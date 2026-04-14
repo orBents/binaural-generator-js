@@ -1,4 +1,14 @@
 import { getPreset } from "../utils/presets.mjs";
+import {
+  AUDIO_LIMITS,
+  AUDIO_RAMP,
+  FILTER_DEFAULTS,
+  BINAURAL_SWEEP,
+  BINAURAL_TONE_BY_WAVE,
+  COMPRESSOR_DEFAULTS,
+  applyFade,
+  getMaxBinauralMix,
+} from "../config/audioConfig.mjs";
 
 const AudioContextRef = window.AudioContext || window.webkitAudioContext;
 
@@ -7,6 +17,7 @@ class BinauralEngine {
     this.audioContext = options.audioContext || new AudioContextRef();
     this.minGain = 0.0001;
     this.maxMasterGain = 1;
+    this.beatReferenceVolume = 0.82;
 
     this.isRunning = false;
     this.transportTargetGain = this._clamp(options.masterGain ?? 0.32, this.minGain, 0.9);
@@ -27,20 +38,20 @@ class BinauralEngine {
     this.toneFilter.Q.value = 0.7;
     this.noiseFilter.Q.value = 0.7;
 
-    this.toneFilter.frequency.value = 420;
-    this.noiseFilter.frequency.value = 320;
+    this.toneFilter.frequency.value = FILTER_DEFAULTS.binauralCutoff;
+    this.noiseFilter.frequency.value = FILTER_DEFAULTS.noiseCutoff;
 
-    this.binauralMixGain.gain.value = 0.08;
+    this.binauralMixGain.gain.value = getMaxBinauralMix(this.beatReferenceVolume);
     this.noiseMixGain.gain.value = 0.02;
     this.atmosphereInput.gain.value = 1;
     this.sessionGain.gain.value = this.minGain;
     this.masterGain.gain.value = this.masterVolumeTarget;
 
-    this.compressor.threshold.value = -16;
-    this.compressor.knee.value = 20;
-    this.compressor.ratio.value = 5;
-    this.compressor.attack.value = 0.003;
-    this.compressor.release.value = 0.2;
+    this.compressor.threshold.value = COMPRESSOR_DEFAULTS.threshold;
+    this.compressor.knee.value = COMPRESSOR_DEFAULTS.knee;
+    this.compressor.ratio.value = COMPRESSOR_DEFAULTS.ratio;
+    this.compressor.attack.value = COMPRESSOR_DEFAULTS.attack;
+    this.compressor.release.value = COMPRESSOR_DEFAULTS.release;
 
     this.binauralMixGain.connect(this.toneFilter);
     this.noiseMixGain.connect(this.noiseFilter);
@@ -59,9 +70,9 @@ class BinauralEngine {
     this.sweepTimeout = null;
     this.sweepActive = false;
     this.sweepDirection = 1;
-    this.sweepLow = 180;
-    this.sweepHigh = 620;
-    this.sweepDurationSec = 7;
+    this.sweepLow = BINAURAL_SWEEP.low;
+    this.sweepHigh = BINAURAL_SWEEP.high;
+    this.sweepDurationSec = BINAURAL_SWEEP.durationSec;
 
     this.brownNoiseBuffer = this._createBrownianNoiseBuffer();
     this.brownNoiseSource = null;
@@ -131,8 +142,8 @@ class BinauralEngine {
     }
 
     this.isRunning = true;
-    this._rampGain(this.masterGain.gain, this.masterVolumeTarget, 0.14);
-    this._rampGain(this.sessionGain.gain, this.transportTargetGain, 0.2);
+    this._rampGain(this.masterGain.gain, this.masterVolumeTarget, AUDIO_RAMP.fast);
+    this._rampGain(this.sessionGain.gain, this.transportTargetGain, AUDIO_RAMP.normal);
     this._updateSweepState();
   }
 
@@ -145,7 +156,7 @@ class BinauralEngine {
     this._stopCutoffSweep();
 
     const safeFade = this._clamp(Number(fadeDuration), 0.08, 4);
-    this._rampGain(this.sessionGain.gain, 0, Math.min(0.2, safeFade));
+    this._rampGain(this.sessionGain.gain, 0, Math.min(AUDIO_RAMP.normal, safeFade));
     this._rampGain(this.masterGain.gain, 0, safeFade);
 
     window.setTimeout(async () => {
@@ -199,12 +210,19 @@ class BinauralEngine {
   }
 
   setBinauralMix(value, rampSeconds = 0.15) {
-    const level = this._clamp(Number(value), 0, 1);
+    const requested = this._clamp(Number(value), AUDIO_LIMITS.min, AUDIO_LIMITS.max);
+    const cap = getMaxBinauralMix(this.beatReferenceVolume);
+    const level = Math.min(requested, cap);
     this._rampGain(this.binauralMixGain.gain, level, rampSeconds);
   }
 
+  setBeatReferenceVolume(value) {
+    this.beatReferenceVolume = this._clamp(Number(value), AUDIO_LIMITS.min, AUDIO_LIMITS.max);
+    this.setBinauralMix(this.binauralMixGain.gain.value, AUDIO_RAMP.fast);
+  }
+
   setNoiseMix(value, rampSeconds = 0.15) {
-    const level = this._clamp(Number(value), 0, 0.35);
+    const level = this._clamp(Number(value), 0, AUDIO_LIMITS.maxNoiseMix);
     this._rampGain(this.noiseMixGain.gain, level, rampSeconds);
     this._updateSweepState();
   }
@@ -318,7 +336,7 @@ class BinauralEngine {
 
     this._stopCutoffSweep();
     this._applyToneShaping(this.currentWaveType);
-    this._rampFrequencyLinear(this.noiseFilter.frequency, 320, 0.8);
+    this._rampFrequencyLinear(this.noiseFilter.frequency, FILTER_DEFAULTS.noiseCutoff, 0.8);
   }
 
   _startCutoffSweep() {
@@ -356,13 +374,7 @@ class BinauralEngine {
   }
 
   _applyToneShaping(waveType) {
-    const cutoffByType = {
-      sine: 420,
-      triangle: 360,
-      square: 260,
-      sawtooth: 220,
-    };
-    const target = cutoffByType[waveType] || 360;
+    const target = BINAURAL_TONE_BY_WAVE[waveType] || BINAURAL_TONE_BY_WAVE.triangle;
     this._rampFrequencyLinear(this.toneFilter.frequency, target, 0.8);
   }
 
@@ -391,17 +403,7 @@ class BinauralEngine {
   }
 
   _rampGain(audioParam, target, rampSeconds) {
-    const now = this.audioContext.currentTime;
-    const start = Math.max(audioParam.value, this.minGain);
-    const safeTarget = Math.max(target, this.minGain);
-
-    audioParam.cancelScheduledValues(now);
-    audioParam.setValueAtTime(start, now);
-    audioParam.exponentialRampToValueAtTime(safeTarget, now + rampSeconds);
-
-    if (target <= 0) {
-      audioParam.setValueAtTime(0, now + rampSeconds + 0.001);
-    }
+    applyFade(this.audioContext, audioParam, target, rampSeconds, true, this.minGain);
   }
 
   _rampFrequencyLinear(audioParam, target, rampSeconds) {

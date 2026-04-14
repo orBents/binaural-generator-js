@@ -1,4 +1,4 @@
-﻿import { DEFAULT_VOLUME_STATE, applyAudioPolicy } from "./config/audioConfig.mjs";
+import { DEFAULT_VOLUME_STATE, applyAudioPolicy } from "./config/audioConfig.mjs";
 
 const DEFAULT_STATE = {
   playback: {

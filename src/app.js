@@ -1,4 +1,4 @@
-﻿import { BinauralEngine } from "./core/BinauralEngine.mjs";
+import { BinauralEngine } from "./core/BinauralEngine.mjs";
 import { LofiEngine } from "./core/LofiEngine.mjs";
 import { getMaxBinauralMix } from "./config/audioConfig.mjs";
 import { PRESET_KEYS, getPreset } from "./utils/presets.mjs";
@@ -57,9 +57,6 @@ function setupPresetOptions() {
 
 function applyThemeFromPreset(presetName) {
   const preset = getPreset(presetName);
-  document.body.style.setProperty("--bg-a", preset.gradient[0]);
-  document.body.style.setProperty("--bg-b", preset.gradient[1]);
-  document.body.style.setProperty("--accent", preset.accent);
   presetHint.textContent = `${preset.label}: batimento ${preset.beatFrequency}Hz`;
 }
 
@@ -74,9 +71,10 @@ function applyTabUI(tabName) {
 
   tuningPanel.classList.toggle("active", tuningActive);
   rhythmPanel.classList.toggle("active", !tuningActive);
+  document.body.dataset.activeTab = tabName;
 
   visualizer.setStrokeColor(
-    tuningActive ? "rgba(165, 126, 235, 0.9)" : "rgba(214, 183, 255, 0.96)"
+    tuningActive ? "rgba(15, 255, 243, 0.95)" : "rgba(255, 0, 255, 0.92)"
   );
 }
 
@@ -107,9 +105,11 @@ function syncControlsFromState(state) {
   });
 
   btnPlay.classList.toggle("paused", state.playback.isPlaying);
+  btnPlay.setAttribute("aria-label", state.playback.isPlaying ? "Pausar reproducao" : "Iniciar reproducao");
 }
 
 function applyAudioState(state) {
+  engine.setBeatReferenceVolume(state.lofi.volume);
   engine.setPreset(state.binaural.preset, 0);
   engine.setWaveType(state.binaural.waveType);
   engine.setBinauralMix(state.binaural.mix);
@@ -132,6 +132,7 @@ applyAudioState(initial);
 updateBinauralCapUI(initial);
 
 appState.subscribe((state) => {
+  engine.setBeatReferenceVolume(state.lofi.volume);
   syncControlsFromState(state);
   applyThemeFromPreset(state.binaural.preset);
   applyTabUI(state.ui.activeTab);
@@ -197,6 +198,7 @@ lofiVolume.addEventListener("input", (event) => {
   });
 
   const nextState = appState.getState();
+  engine.setBeatReferenceVolume(nextState.lofi.volume);
   lofiEngine.setVolume(nextState.lofi.volume);
   engine.setBinauralMix(nextState.binaural.mix);
 });

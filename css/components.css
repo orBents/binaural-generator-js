@@ -1,24 +1,43 @@
-﻿.button {
+.button {
+  width: 116px;
+  height: 116px;
   border: 0;
-  padding: 0;
-  width: 0;
-  height: 68px;
-  background: transparent;
-  border-style: solid;
-  border-width: 34px 0 34px 58px;
-  border-color: transparent transparent transparent var(--accent);
-  filter: drop-shadow(0 6px 12px rgba(14, 4, 26, 0.55));
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 28%, #ff44f3 0%, #d600c8 65%, #aa009c 100%);
+  box-shadow:
+    0 14px 30px rgba(255, 0, 255, 0.34),
+    inset 0 1px 2px rgba(255, 255, 255, 0.22);
+  color: var(--color-text-primary);
+  display: grid;
+  place-items: center;
   cursor: pointer;
-  transition: transform 130ms ease;
+  transition: transform 0.2s ease, filter 0.3s ease, box-shadow 0.3s ease;
+}
+
+.button:hover {
+  filter: brightness(1.08);
 }
 
 .button:active {
   transform: scale(0.98);
 }
 
-.button.paused {
-  border-style: double;
-  border-width: 0 0 0 58px;
+.play-icon {
+  width: 36px;
+  height: 36px;
+  fill: currentColor;
+}
+
+.icon-pause {
+  display: none;
+}
+
+.button.paused .icon-play {
+  display: none;
+}
+
+.button.paused .icon-pause {
+  display: block;
 }
 
 .tabs {
@@ -28,120 +47,204 @@
 }
 
 .tab-btn {
-  border: 1px solid rgba(214, 187, 255, 0.26);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--muted);
-  padding: 9px 10px;
-  font-size: 0.9rem;
+  min-height: 46px;
+  border-radius: 13px;
+  border: 1px solid var(--color-outline);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   cursor: pointer;
+  transition: color 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
 }
 
 .tab-btn.active {
-  background: rgba(185, 139, 255, 0.22);
-  color: var(--text);
-  border-color: rgba(216, 186, 255, 0.62);
+  color: var(--tab-accent);
+  border-color: color-mix(in srgb, var(--tab-accent) 70%, #ffffff 10%);
+  background: color-mix(in srgb, var(--tab-accent) 16%, transparent);
 }
 
 .control-icon {
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   border-radius: 999px;
-  border: 1px solid rgba(216, 186, 255, 0.32);
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--tab-accent) 52%, transparent);
+  background: color-mix(in srgb, var(--tab-accent) 12%, transparent);
+  color: var(--tab-accent);
   display: grid;
   place-items: center;
-  font-size: 0.92rem;
-  line-height: 1;
   user-select: none;
+  transition: color 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.control-icon svg {
+  width: 17px;
+  height: 17px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .control-icon-tag {
-  font-size: 0.62rem;
+  width: 34px;
+  font-size: 0.58rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
 }
 
 .control-badge {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  text-decoration: none;
 }
 
 .control-text {
-  color: var(--muted);
-  font-size: 0.78rem;
-  letter-spacing: 0.01em;
-}
-
-.controls-sheet select,
-.controls-sheet input[type="range"] {
-  width: 100%;
+  color: var(--color-text-muted);
+  font-size: 0.76rem;
 }
 
 .controls-sheet select {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(214, 187, 255, 0.28);
-  color: var(--text);
-  border-radius: 10px;
-  padding: 8px;
+  width: 100%;
+  min-height: 42px;
+  border-radius: 11px;
+  border: 1px solid color-mix(in srgb, var(--tab-accent) 45%, transparent);
+  background: rgba(8, 19, 38, 0.75);
+  color: var(--color-text-primary);
+  padding: 9px 10px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.controls-sheet select:focus-visible {
+  outline: none;
+  border-color: var(--tab-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--tab-accent) 32%, transparent);
 }
 
 .controls-sheet option {
-  color: #1f1230;
+  color: #0d1328;
 }
 
-.controls-sheet input[type="range"] {
-  accent-color: #b98bff;
+.slider {
+  width: 100%;
+  height: 36px;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+
+.slider::-webkit-slider-runnable-track {
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(136, 153, 172, 0.35);
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  border: 0;
+  margin-top: -7px;
+  background: var(--tab-accent);
+  box-shadow: 0 0 0 2px rgba(7, 12, 28, 0.7);
+}
+
+.slider::-moz-range-track {
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(136, 153, 172, 0.35);
+}
+
+.slider::-moz-range-thumb {
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--tab-accent);
+  box-shadow: 0 0 0 2px rgba(7, 12, 28, 0.7);
+}
+
+.tuning-slider::-webkit-slider-thumb {
+  background: var(--color-accent-cyan);
+}
+
+.tuning-slider::-moz-range-thumb {
+  background: var(--color-accent-cyan);
+}
+
+.rhythm-slider::-webkit-slider-thumb {
+  background: var(--color-accent-magenta);
+}
+
+.rhythm-slider::-moz-range-thumb {
+  background: var(--color-accent-magenta);
+}
+
+.cap-hint-row {
+  margin-top: -3px;
+}
+
+.hint-text {
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
 }
 
 .mode-btn {
-  height: 46px;
+  min-height: 54px;
   border-radius: 12px;
-  border: 1px solid rgba(214, 187, 255, 0.28);
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--text);
-  font-size: 1rem;
+  border: 1px solid rgba(255, 0, 255, 0.28);
+  background: rgba(255, 255, 255, 0.03);
+  color: #ffd7ff;
   display: grid;
-  align-content: center;
-  justify-items: center;
-  gap: 3px;
+  place-items: center;
+  gap: 4px;
   cursor: pointer;
-  transition: background 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+  transition: color 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
 }
 
 .mode-btn.active {
-  background: rgba(185, 139, 255, 0.26);
-  border-color: rgba(216, 186, 255, 0.6);
-}
-
-.mode-btn:hover {
-  transform: translateY(-1px);
+  color: var(--color-accent-magenta);
+  border-color: color-mix(in srgb, var(--color-accent-magenta) 72%, #ffffff 10%);
+  background: color-mix(in srgb, var(--color-accent-magenta) 20%, transparent);
 }
 
 .mode-icon {
-  font-size: 0.98rem;
-  line-height: 1;
+  width: 17px;
+  height: 17px;
+  display: grid;
+  place-items: center;
+}
+
+.mode-icon svg {
+  width: 17px;
+  height: 17px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .mode-text {
-  font-size: 0.7rem;
-  letter-spacing: 0.03em;
-  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
 }
 
 .toggle-inline {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
 }
 
 .toggle-label {
-  color: var(--muted);
-  font-size: 0.88rem;
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
 }
 
 .vinyl-toggle {
@@ -158,29 +261,29 @@
 }
 
 .toggle-track {
-  width: 52px;
-  height: 30px;
+  width: 54px;
+  height: 32px;
   border-radius: 999px;
-  border: 1px solid rgba(214, 187, 255, 0.32);
-  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 0, 255, 0.32);
+  background: rgba(255, 255, 255, 0.06);
   display: inline-flex;
   align-items: center;
   padding: 2px;
-  transition: background 180ms ease, border-color 180ms ease;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
 }
 
 .toggle-thumb {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.85);
+  background: #dbe5ff;
   transform: translateX(0);
-  transition: transform 180ms ease;
+  transition: transform 0.25s ease;
 }
 
 .vinyl-toggle input:checked + .toggle-track {
-  background: rgba(185, 139, 255, 0.38);
-  border-color: rgba(216, 186, 255, 0.6);
+  background: color-mix(in srgb, var(--color-accent-cyan) 35%, transparent);
+  border-color: color-mix(in srgb, var(--color-accent-cyan) 64%, transparent);
 }
 
 .vinyl-toggle input:checked + .toggle-track .toggle-thumb {
@@ -189,11 +292,16 @@
 
 @media (max-width: 760px) {
   .button {
-    height: 56px;
-    border-width: 29px 0 29px 48px;
+    width: 102px;
+    height: 102px;
   }
 
-  .button.paused {
-    border-width: 0 0 0 48px;
+  .play-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .tab-btn {
+    min-height: 48px;
   }
 }

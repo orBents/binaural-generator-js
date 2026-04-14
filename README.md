@@ -1,42 +1,94 @@
-# BIWAVE 
-### Implementação de ondas binaurais como ferramenta de combate ao estresse e ansiedade
-Uma aplicação Web simples e intuitiva desenvolvida em pure js, fazendo uso das tecnologias JavaScript, CSS e HTML, voltada para a geração de sons randômicos seguindo o padrão Binaural Sound.
+# BIWAVE
+Aplicacao web de relaxamento e foco com mix de `Binaural + Lo-Fi + Noise`, arquitetura modular e foco em experiencia mobile.
 
-## 🚀 Começando
+## Visao do Projeto
+O BIWAVE evoluiu de um gerador simples para uma plataforma sonora com:
+- camadas de audio independentes (Binaural, Beat Lo-Fi, Noise)
+- controle de mix com protecao anti-clipping
+- interface mobile-first com feedback visual
+- estado global centralizado para previsibilidade de comportamento
 
-Para a execução do projeto localmente é indicado o uso do editor de código fonte Visual Studio Code, junto com a extensão Live Server, para assim criar um servidor local onde será rodada a aplicação.
+## Novas Metas
+1. Tornar o **Beat** a camada principal por padrao.
+2. Garantir por regra de sistema: **Binaural <= 10% do volume do Beat**.
+3. Centralizar politicas de volume em um unico ponto de configuracao.
+4. Manter arquitetura escalavel (Controller-Engine-UI-State).
+5. Evoluir para presets terapeuticos e sessoes guiadas automatizadas.
 
-Também é possível acessar a aplicação hospedada como github-page: [BIWAVE](https://orbents.github.io/binaural-generator-js/)
+## Regras de Mix (Atual)
+- O Beat e prioritario na mix.
+- O volume Binaural e automaticamente limitado a 10% do volume do Beat.
+- O `Master Bus` usa `DynamicsCompressorNode` para reduzir risco de clipping.
+- O volume geral e aplicado no estagio final (`masterGain`) sem alterar o balance interno.
 
-Consulte a área de **Instalação** para saber como executar o projeto localmente.
+Implementacao central dessas regras:
+- `src/config/audioConfig.mjs`
+- `src/state.js`
+- `src/core/BinauralEngine.mjs` (enforcement em runtime)
 
-### 📋 Pré-requisitos
-
-- Visual Studio Code: [vscode](https://code.visualstudio.com/download)
-- Extensão Live Server: [LiveServer](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer)
-- Navegador de internet.
-
-### 🔧 Instalação
-
-Para a instalação local, é necessário fazer o download da pasta com o projeto: [download](https://github.com/orBents/binaural-generator-js/archive/refs/heads/main.zip)
-
-Posteriormente, basta abrir o diretório da aplicação com o editor VSCODE;
-
-Lembre-se de ter a extensão "Live Server" instalada, em seguida: 
-
+## Arquitetura Recomendada
+```text
+/biwave
+├── /assets
+├── /css
+│   ├── theme.css
+│   ├── layout.css
+│   └── components.css
+├── /docs
+├── /src
+│   ├── /config
+│   │   └── audioConfig.mjs
+│   ├── /core
+│   │   ├── BinauralEngine.mjs
+│   │   └── LofiEngine.mjs
+│   ├── /ui
+│   │   └── Visualizer.mjs
+│   ├── /utils
+│   │   └── presets.mjs
+│   ├── app.js
+│   └── state.js
+├── index.html
+├── manifest.json
+└── sw.js
 ```
-1. Clicar com o botão direito do mouse sobre o arquivo 'index.html'
-2. Clicar em 'Open with Live Server'
+
+## Papel de Cada Camada
+- `src/app.js`: orquestrador de UI e eventos.
+- `src/state.js`: estado global da aplicacao.
+- `src/config/audioConfig.mjs`: politicas centrais de volume e limites.
+- `src/core/*Engine.mjs`: audio engine sem dependencia direta de DOM.
+- `src/ui/*`: componentes visuais e feedback.
+
+## Contratos de Arquitetura
+- `Controller`: nunca cria regra de negocio de audio; apenas encaminha eventos.
+- `State`: e a fonte unica da verdade para modo, volumes, play/pause e aba ativa.
+- `Engine`: recebe estado ja validado e aplica no grafo de audio com rampas suaves.
+- `Config`: concentra constantes globais (rampas, filtros, limites e presets de modo).
+
+## Politica de Volume Centralizada
+- Beat: camada principal de referencia.
+- Binaural: `mix <= beatVolume * 0.1` (state + engine).
+- Noise: limitado por `maxNoiseMix`.
+- Master: controle final de saida para evitar saturacao no dispositivo.
+
+## Fluxo de Audio
+```text
+Binaural + Noise + Lofi -> Session Gain -> Compressor -> Master Gain -> Analyser -> Destination
 ```
-Sua janela será redirecionada para o navegador padrão, onde a aplicação será aberta e estará rodando localmente na sua máquina.
 
-## ✒️ Autores
+## Como Rodar
+1. Abra o projeto no VS Code.
+2. Inicie com Live Server em `index.html`.
+3. Use fones para perceber corretamente o efeito binaural.
 
-Este projeto serviu como Trabalho de Conclusão de Curso do ensino superior em Análise e Desenvolvimento de Sistemas, administrado pelo Instituto Federal de São Paulo, Campus Bragança Paulista.
+## Roadmap Tecnico
+- `v0.9`: presets de mix (`Beat Focus`, `Balanced`, `Meditation`).
+- `v1.0`: sessoes guiadas (tempo, progressao, respiracao).
+- `v1.1`: telemetria local anonima de uso de controles.
+- `v1.2`: testes automatizados de estado e regressao de mix.
+- `v1.3`: `dispose()` completo nas engines e limpeza de timers/nodes.
+- `v1.4`: hard limiter apos compressor para zero clipping em cenario extremo.
 
-* **Gustavo Almeida de Souza** - *Autor e Desenvolvedor* - [GusRed](https://github.com/GusRed)
-* **Jakeson Mateus Pantaleão de Moraes** - *Autor e Desenvolvedor* - [jakesonmateus](https://github.com/jakesonmateus)
-* **Vinicius Bento de Souza** - *Autor e Desenvolvedor* - [orBents](https://github.com/orBents)
-
-## 🔭 Prof. Orientador
-* **Dra. Ana Paula Müller Giancoli** - *Orientadora* - [anagiancoli](https://github.com/anagiancoli)
+## Notas
+- O projeto prioriza suavidade auditiva e transicoes sem cliques.
+- Alteracoes de volume/filtros devem usar rampas (`linearRampToValueAtTime` ou `exponentialRampToValueAtTime`).

@@ -1,4 +1,6 @@
-﻿class LofiEngine {
+import { AUDIO_RAMP, FILTER_DEFAULTS, LOFI_MODE_DEFAULTS, applyFade } from "../config/audioConfig.mjs";
+
+class LofiEngine {
   constructor(audioContext, destinationNode, options = {}) {
     this.audioContext = audioContext;
     this.destinationNode = destinationNode;
@@ -26,7 +28,7 @@
     this.crackleGain.gain.value = this.minGain;
 
     this.beatLowPass.type = "lowpass";
-    this.beatLowPass.frequency.value = 1500;
+    this.beatLowPass.frequency.value = FILTER_DEFAULTS.lofiLowPass;
     this.beatLowPass.Q.value = 0.9;
 
     this.crackleHighPass.type = "highpass";
@@ -73,36 +75,7 @@
     this.crackleSource = null;
     this.running = false;
 
-    this.modeConfig = {
-      soft: {
-        bpm: 78,
-        lowPass: 1400,
-        lowPassQ: 0.95,
-        reverbSend: 0.08,
-        swing: 0,
-      },
-      jazzy: {
-        bpm: 82,
-        lowPass: 1600,
-        lowPassQ: 1.2,
-        reverbSend: 0.12,
-        swing: 0.02,
-      },
-      deep: {
-        bpm: 70,
-        lowPass: 950,
-        lowPassQ: 0.75,
-        reverbSend: 0.35,
-        swing: 0,
-      },
-      space: {
-        bpm: 80,
-        lowPass: 1750,
-        lowPassQ: 2.2,
-        reverbSend: 0.2,
-        swing: 0.008,
-      },
-    };
+    this.modeConfig = LOFI_MODE_DEFAULTS;
 
     this.setMode(this.mode, { immediate: true });
     this.setIntensity(this.intensity);
@@ -129,11 +102,8 @@
       this._startCrackleAutomation();
     }
 
-    const now = this.audioContext.currentTime;
     const target = this._intensityToMaster(this.intensity);
-    this.masterGain.gain.cancelScheduledValues(now);
-    this.masterGain.gain.setValueAtTime(this.minGain, now);
-    this.masterGain.gain.linearRampToValueAtTime(target, now + 3);
+    applyFade(this.audioContext, this.masterGain.gain, target, AUDIO_RAMP.startFade, true, this.minGain);
   }
 
   stop() {
@@ -149,34 +119,26 @@
     }
 
     this._stopCrackleAutomation();
-
-    const now = this.audioContext.currentTime;
-    this.masterGain.gain.cancelScheduledValues(now);
-    this.masterGain.gain.setValueAtTime(Math.max(this.masterGain.gain.value, this.minGain), now);
-    this.masterGain.gain.linearRampToValueAtTime(this.minGain, now + 0.8);
+    applyFade(this.audioContext, this.masterGain.gain, this.minGain, AUDIO_RAMP.stopFade, true, this.minGain);
   }
 
   setIntensity(value) {
     this.intensity = this._clamp(Number(value), 0, 1);
-    this._applyBeatDynamics(0.25);
-    this._applyCrackleBase(0.2);
+    this._applyBeatDynamics(AUDIO_RAMP.normal);
+    this._applyCrackleBase(AUDIO_RAMP.normal);
   }
 
-  setVolume(value, rampSeconds = 0.2) {
+  setVolume(value, rampSeconds = AUDIO_RAMP.normal) {
     this.volume = this._clamp(Number(value), 0, 1);
-    const now = this.audioContext.currentTime;
     const target = this._clamp(this.volume, this.minGain, 1);
-
-    this.volumeGain.gain.cancelScheduledValues(now);
-    this.volumeGain.gain.setValueAtTime(Math.max(this.volumeGain.gain.value, this.minGain), now);
-    this.volumeGain.gain.linearRampToValueAtTime(target, now + rampSeconds);
+    applyFade(this.audioContext, this.volumeGain.gain, target, rampSeconds, true, this.minGain);
   }
 
   setVinylEnabled(enabled) {
     this.vinylEnabled = Boolean(enabled);
 
     if (!this.running) {
-      this._applyCrackleBase(0.15);
+      this._applyCrackleBase(AUDIO_RAMP.normal);
       return;
     }
 
@@ -184,7 +146,7 @@
       this._startCrackleAutomation();
     } else {
       this._stopCrackleAutomation();
-      this._applyCrackleBase(0.15);
+      this._applyCrackleBase(AUDIO_RAMP.normal);
     }
   }
 
@@ -205,26 +167,24 @@
     this.swingAmount = config.swing;
 
     const now = this.audioContext.currentTime;
-    const rampDownEnd = now + (immediate ? 0 : 0.12);
-    const rampUpEnd = now + (immediate ? 0.01 : 0.45);
+    const rampDownEnd = now + (immediate ? 0.01 : AUDIO_RAMP.fast);
+    const rampUpEnd = now + (immediate ? 0.02 : AUDIO_RAMP.slow);
     const targetBeat = this._intensityToHit(this.intensity);
 
     this.beatBusGain.gain.cancelScheduledValues(now);
     this.beatBusGain.gain.setValueAtTime(Math.max(this.beatBusGain.gain.value, this.minGain), now);
-    this.beatBusGain.gain.linearRampToValueAtTime(this.minGain, rampDownEnd);
-    this.beatBusGain.gain.linearRampToValueAtTime(Math.max(targetBeat, this.minGain), rampUpEnd);
+    this.beatBusGain.gain.exponentialRampToValueAtTime(this.minGain, rampDownEnd);
+    this.beatBusGain.gain.exponentialRampToValueAtTime(Math.max(targetBeat, this.minGain), rampUpEnd);
 
     this.beatLowPass.frequency.cancelScheduledValues(now);
     this.beatLowPass.frequency.setValueAtTime(this.beatLowPass.frequency.value, now);
-    this.beatLowPass.frequency.linearRampToValueAtTime(config.lowPass, now + 0.35);
+    this.beatLowPass.frequency.linearRampToValueAtTime(config.lowPass, now + AUDIO_RAMP.slow);
 
     this.beatLowPass.Q.cancelScheduledValues(now);
     this.beatLowPass.Q.setValueAtTime(this.beatLowPass.Q.value, now);
-    this.beatLowPass.Q.linearRampToValueAtTime(config.lowPassQ, now + 0.35);
+    this.beatLowPass.Q.linearRampToValueAtTime(config.lowPassQ, now + AUDIO_RAMP.slow);
 
-    this.reverbSendGain.gain.cancelScheduledValues(now);
-    this.reverbSendGain.gain.setValueAtTime(this.reverbSendGain.gain.value, now);
-    this.reverbSendGain.gain.linearRampToValueAtTime(config.reverbSend, now + 0.35);
+    applyFade(this.audioContext, this.reverbSendGain.gain, config.reverbSend, AUDIO_RAMP.slow, true, this.minGain);
   }
 
   _scheduleLoop() {
@@ -351,7 +311,7 @@
     const scaled = safeVelocity * this._intensityToHit(this.intensity);
 
     hitGain.gain.setValueAtTime(this.minGain, time);
-    hitGain.gain.linearRampToValueAtTime(Math.max(scaled, this.minGain), time + 0.003);
+    hitGain.gain.exponentialRampToValueAtTime(Math.max(scaled, this.minGain), time + 0.003);
     hitGain.gain.exponentialRampToValueAtTime(this.minGain, time + decay);
 
     source.connect(hitGain);
@@ -386,15 +346,15 @@
       }
 
       const now = this.audioContext.currentTime;
-      const base = this._intensityToCrackle(this.intensity) * 0.16;
-      const peak = base + (Math.random() * base * 1.05);
-      const hold = 0.04 + Math.random() * 0.06;
+      const base = this._intensityToCrackle(this.intensity) * 0.12;
+      const peak = base + (Math.random() * base * 0.75);
+      const hold = 0.05 + Math.random() * 0.08;
 
       this.crackleGain.gain.cancelScheduledValues(now);
       this.crackleGain.gain.setValueAtTime(Math.max(base, this.minGain), now);
-      this.crackleGain.gain.linearRampToValueAtTime(Math.max(peak, this.minGain), now + 0.014);
-      this.crackleGain.gain.linearRampToValueAtTime(Math.max(base, this.minGain), now + hold);
-    }, 120);
+      this.crackleGain.gain.exponentialRampToValueAtTime(Math.max(peak, this.minGain), now + 0.014);
+      this.crackleGain.gain.exponentialRampToValueAtTime(Math.max(base, this.minGain), now + hold);
+    }, 170);
   }
 
   _stopCrackleAutomation() {
@@ -404,29 +364,19 @@
     }
   }
 
-  _applyBeatDynamics(rampSeconds = 0.2) {
-    const now = this.audioContext.currentTime;
+  _applyBeatDynamics(rampSeconds = AUDIO_RAMP.normal) {
     const beatTarget = this._intensityToHit(this.intensity);
-
-    this.beatBusGain.gain.cancelScheduledValues(now);
-    this.beatBusGain.gain.setValueAtTime(Math.max(this.beatBusGain.gain.value, this.minGain), now);
-    this.beatBusGain.gain.linearRampToValueAtTime(Math.max(beatTarget, this.minGain), now + rampSeconds);
+    applyFade(this.audioContext, this.beatBusGain.gain, beatTarget, rampSeconds, true, this.minGain);
 
     if (this.running) {
       const masterTarget = this._intensityToMaster(this.intensity);
-      this.masterGain.gain.cancelScheduledValues(now);
-      this.masterGain.gain.setValueAtTime(Math.max(this.masterGain.gain.value, this.minGain), now);
-      this.masterGain.gain.linearRampToValueAtTime(Math.max(masterTarget, this.minGain), now + rampSeconds);
+      applyFade(this.audioContext, this.masterGain.gain, masterTarget, rampSeconds, true, this.minGain);
     }
   }
 
-  _applyCrackleBase(rampSeconds = 0.2) {
-    const now = this.audioContext.currentTime;
+  _applyCrackleBase(rampSeconds = AUDIO_RAMP.normal) {
     const baseTarget = this.vinylEnabled ? this._intensityToCrackle(this.intensity) : this.minGain;
-
-    this.crackleGain.gain.cancelScheduledValues(now);
-    this.crackleGain.gain.setValueAtTime(Math.max(this.crackleGain.gain.value, this.minGain), now);
-    this.crackleGain.gain.linearRampToValueAtTime(Math.max(baseTarget, this.minGain), now + rampSeconds);
+    applyFade(this.audioContext, this.crackleGain.gain, baseTarget, rampSeconds, true, this.minGain);
   }
 
   _createKickBuffer() {
@@ -439,7 +389,7 @@
       const t = i / this.audioContext.sampleRate;
       const sweep = 92 * Math.exp(-t * 15) + 44;
       const envelope = Math.exp(-t * 10.5);
-      data[i] = Math.sin(2 * Math.PI * sweep * t) * envelope;
+      data[i] = Math.sin(2 * Math.PI * sweep * t) * envelope * 1.65;
     }
 
     return buffer;
@@ -470,9 +420,9 @@
     for (let i = 0; i < length; i += 1) {
       const t = i / this.audioContext.sampleRate;
       const envelope = Math.exp(-t * 24);
-      const noise = (Math.random() * 2 - 1) * 0.55;
-      const tone = Math.sin(2 * Math.PI * 210 * t) * 0.24;
-      data[i] = (noise + tone) * envelope;
+      const noise = (Math.random() * 2 - 1) * 0.62;
+      const tone = Math.sin(2 * Math.PI * 210 * t) * 0.28;
+      data[i] = (noise + tone) * envelope * 1.45;
     }
 
     return buffer;
@@ -521,11 +471,11 @@
   }
 
   _intensityToMaster(intensity) {
-    return this._clamp(0.08 + intensity * 0.34, this.minGain, 0.52);
+    return this._clamp(0.22 + intensity * 0.5, this.minGain, 0.82);
   }
 
   _intensityToHit(intensity) {
-    return this._clamp(0.16 + intensity * 0.34, this.minGain, 0.56);
+    return this._clamp(0.28 + intensity * 0.62, this.minGain, 0.9);
   }
 
   _intensityToCrackle(intensity) {
