@@ -1,76 +1,161 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
-    <meta charset="UTF-8">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#7409b7"/>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/x-icon" href="./static/favicon.png">
-    <link rel="stylesheet" href="./style/style.css">
-    <link rel="stylesheet" href="./style/music-bars.css">
-    <link rel="stylesheet" href="./style/volume-range-bar.css">
-    <link rel="stylesheet" href="./style/toggle-button.css">
-    <script type="module" src="./index.js"></script>
-    <title>biwave</title>
+  <meta charset="UTF-8">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4a2a70" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="./assets/favicon.png">
+  <link rel="stylesheet" href="./css/theme.css">
+  <link rel="stylesheet" href="./css/layout.css">
+  <link rel="stylesheet" href="./css/components.css">
+  <script type="module" src="./src/app.js"></script>
+  <title>biwave</title>
 </head>
 
 <body>
-    <div class="toggle-mode">
-        <label class="switch">
-            <input type="checkbox" onclick="toggleMode()" checked>
-            <span class="slider round"></span>
+  <main class="app-shell">
+    <header class="app-header">
+      <h1><span class="mark">bi</span>wave</h1>
+      <p id="preset-hint">Alpha: batimento 8Hz</p>
+    </header>
+
+    <section class="visualizer-card" id="visualizer-card">
+      <canvas id="oscilloscope" width="900" height="180"></canvas>
+    </section>
+
+    <section class="play-section">
+      <button type="button" id="play-btn" class="button" aria-label="Alternar reproducao"></button>
+    </section>
+
+    <section class="controls-sheet" aria-label="Controles de audio">
+      <div class="control-row master-row">
+        <label class="control-icon" for="master-volume" title="Volume Geral">◌</label>
+        <input type="range" id="master-volume" min="0" max="1" value="0.78" step="0.01" aria-label="Volume geral">
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="Abas de customizacao">
+        <button type="button" class="tab-btn active" data-tab="tuning" role="tab" aria-selected="true">Sintonia</button>
+        <button type="button" class="tab-btn" data-tab="rhythm" role="tab" aria-selected="false">Ritmo</button>
+      </div>
+
+      <div class="tab-panel active" id="panel-tuning" role="tabpanel">
+        <div class="control-row">
+          <label class="control-icon" for="preset-select" title="Preset">◎</label>
+          <select id="preset-select" aria-label="Preset mental"></select>
+        </div>
+
+        <div class="control-row">
+          <label class="control-icon" for="wave-type" title="Onda">~</label>
+          <select id="wave-type" aria-label="Tipo de onda">
+            <option value="sine" selected>Sine</option>
+            <option value="triangle">Triangle</option>
+            <option value="square">Square</option>
+            <option value="sawtooth">Sawtooth</option>
+          </select>
+        </div>
+
+        <div class="control-row">
+          <label class="control-icon" for="binaural-mix" title="Mix Binaural">◖◗</label>
+          <input type="range" id="binaural-mix" min="0" max="1" value="0.24" step="0.01" aria-label="Mix binaural">
+        </div>
+
+        <div class="control-row">
+          <label class="control-icon" for="noise-mix" title="Ruido Marrom">≋</label>
+          <input type="range" id="noise-mix" min="0" max="0.35" value="0.02" step="0.005" aria-label="Mix ruido marrom">
+        </div>
+      </div>
+
+      <div class="tab-panel" id="panel-rhythm" role="tabpanel">
+        <div class="control-row">
+          <label class="control-badge" for="lofi-volume" title="Volume Beat">
+            <span class="control-icon control-icon-tag">VOL</span>
+            <span class="control-text">Beat</span>
           </label>
-    </div>
-    <div class="flex-container">
-        <div class="flex-items" id="title">
-            <h1><b id="beta-title">&beta;</b>iwave</h1>
+          <input type="range" id="lofi-volume" min="0" max="1" value="0.82" step="0.01" aria-label="Volume beat">
         </div>
-        <div class="flex-items" id="playButton">
-            <button type="button" id="play-btn" class="button"></button>
+
+        <div class="control-row">
+          <label class="control-badge" for="lofi-intensity" title="Intensidade">
+            <span class="control-icon control-icon-tag">DRV</span>
+            <span class="control-text">Drive</span>
+          </label>
+          <input type="range" id="lofi-intensity" min="0" max="1" value="0.62" step="0.01" aria-label="Intensidade Lo-Fi">
         </div>
-        <div class="flex-container-controls">
-            <div class="flex-items-controls volume" id="beta-volume">
-                <input type="range" id="volume-beta" class="volume-slider" min ="0" max="0.06" value="0.03" step="0.001">
-                <img src="./static/volume-icon.svg" class="volume-icon" alt="beta volume" />
-            </div>
-            <div class="flex-items-controls"id="musicBars">
-                <div class="icon">
-                    <span class="bar" id="bar-1"></span>
-                    <span class="bar" id="bar-2"></span>
-                    <span class="bar" id="bar-3"></span>
-                </div>
-            </div>
-            <div class="flex-items-controls volume" id="gamma-volume">
-                <input type="range" id="volume-gamma" class="volume-slider" min ="0" max="0.06" value="0.03" step="0.001">
-                <img src="./static/volume-icon.svg" class="volume-icon" alt="beta volume"/>
-            </div>
-         </div>
-     </div>
-     <div class="display-info-icon">
-        <img src="./static/icon-info.png" class="info-icon" alt="beta volume" />
-        <span class="info-text">use fones de ouvido</span>
-     </div>
+
+        <div class="control-row">
+          <span class="control-badge" aria-hidden="true">
+            <span class="control-icon control-icon-tag">VIN</span>
+            <span class="control-text">Vinyl</span>
+          </span>
+          <label class="toggle-inline" for="vinyl-toggle">
+            <span class="toggle-label">Vinyl</span>
+            <span class="vinyl-toggle">
+              <input type="checkbox" id="vinyl-toggle" aria-label="Ativar crackle de vinil">
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </span>
+          </label>
+        </div>
+
+        <div class="control-row">
+          <span class="control-badge" aria-hidden="true">
+            <span class="control-icon control-icon-tag">SNC</span>
+            <span class="control-text">Groove</span>
+          </span>
+          <label class="toggle-inline" for="groove-toggle">
+            <span class="toggle-label">Groove</span>
+            <span class="vinyl-toggle">
+              <input type="checkbox" id="groove-toggle" aria-label="Ativar groove switch">
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </span>
+          </label>
+        </div>
+
+        <div class="mode-row" aria-label="Modos ritmicos">
+          <button type="button" class="mode-btn active" data-mode="soft" aria-label="Modo Soft">
+            <span class="mode-icon">☁</span>
+            <span class="mode-text">Soft</span>
+          </button>
+          <button type="button" class="mode-btn" data-mode="jazzy" aria-label="Modo Jazzy">
+            <span class="mode-icon">♫</span>
+            <span class="mode-text">Jazzy</span>
+          </button>
+          <button type="button" class="mode-btn" data-mode="deep" aria-label="Modo Deep">
+            <span class="mode-icon">⬤</span>
+            <span class="mode-text">Deep</span>
+          </button>
+          <button type="button" class="mode-btn" data-mode="space" aria-label="Modo Space">
+            <span class="mode-icon">✧</span>
+            <span class="mode-text">Space</span>
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function registerServiceWorker() {
+      const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+      if (isLocalhost) {
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.getRegistrations().then((registrations) => {
+            registrations.forEach((registration) => registration.unregister());
+          });
+        }
+        return;
+      }
+
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("sw.js").catch((error) => {
+          console.log("Service Worker falhou:", error);
+        });
+      }
+    }
+
+    registerServiceWorker();
+  </script>
 </body>
 
-<script>
-    function registerServiceWorker() {
-    // registrando o service worker para navegadores com suporte
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').then(() => {
-        console.log('Service Worker registrado com sucesso.');
-      }).catch(error => {
-        console.log('Service Worker falhou:', error);
-      });
-    }
-  }
-
-  registerServiceWorker();
-
-  function toggleMode() {
-        var element = document.body;
-        element.classList.toggle("light-mode");
-    }
-</script>
 </html>

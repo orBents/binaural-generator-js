@@ -1,8 +1,8 @@
-import { AudioGraph } from "./AudioGraph.mjs";
-
 class RandomGenerator {
-  constructor() {
-    let frequencies = {
+  constructor(engine) {
+    this.engine = engine;
+
+    this.frequencies = {
       alpha: {
         interval: [8, 13],
         frequency: null,
@@ -12,131 +12,124 @@ class RandomGenerator {
         interval: [30, 50],
         frequency: null,
         offset: null,
-        gain: null,
       },
       gamma: {
         interval: [70, 80],
         frequency: null,
         offset: null,
-        gain: null,
       },
     };
-    this.frequencies = frequencies;
-
-    let beta = new AudioGraph();
-    let gamma = new AudioGraph();
-
-    this.beta = beta;
-    this.gamma = gamma;
-
-    this.beta.changeGain(0.02)
-    this.gamma.changeGain(0.02)
   }
 
-  changeBetaGain(ganho){
-    
-    this.beta.changeGain(ganho);
+  setup() {
+    this.setInitialFrequencies();
+
+    this.engine.createTrack("beta", {
+      leftFrequency: this.frequencies.beta.frequency,
+      rightFrequency: this.frequencies.beta.frequency + this.frequencies.beta.offset,
+      gain: 0.03,
+      waveType: "sine",
+    });
+
+    this.engine.createTrack("gamma", {
+      leftFrequency: this.frequencies.gamma.frequency,
+      rightFrequency: this.frequencies.gamma.frequency + this.frequencies.gamma.offset,
+      gain: 0.03,
+      waveType: "sine",
+    });
   }
 
-  changeGammaGain(ganho){
-    this.gamma.changeGain(ganho);
+  changeBetaGain(gain) {
+    this.engine.setTrackGain("beta", gain);
   }
 
-  //FREQUENCY
+  changeGammaGain(gain) {
+    this.engine.setTrackGain("gamma", gain);
+  }
+
+  setWaveType(waveType) {
+    this.engine.selectTimbre(waveType);
+  }
+
+  setLowPassFrequency(cutoff) {
+    this.engine.setLowPassFrequency(cutoff);
+  }
+
+  setBrownNoiseLevel(level) {
+    this.engine.setBrownNoiseLevel(level);
+  }
+
   setInitialFrequencies() {
-    //set random base to use in a incrementation
-    for (const item in this.frequencies) {
-      this.frequencies[item].frequency = this.getRandomInterval(item);
-      this.frequencies[item].offset = this.setRandomOffset();
+    for (const band in this.frequencies) {
+      this.frequencies[band].frequency = this.getRandomInterval(band);
+      this.frequencies[band].offset = this.setRandomOffset();
     }
   }
 
   setDirection() {
-    //set direction to a random increment, decrement or sustain, 1 ,-1 ,0
     return Math.floor(Math.random() * 3) - 1;
   }
 
-  getMinMax(frequency) {
-    //get random base frequency in interval for each dict insert on atenuateContinue
-    let min = Math.ceil(this.frequencies[frequency].interval[0]);
-    let max = Math.floor(this.frequencies[frequency].interval[1]);
-    let values = {
-      min: min,
-      max: max,
-    };
-    return values;
+  getMinMax(band) {
+    const min = Math.ceil(this.frequencies[band].interval[0]);
+    const max = Math.floor(this.frequencies[band].interval[1]);
+    return { min, max };
   }
 
-  getRandomInterval(frequency) {
-    //get random base frequency in interval for each dict insert on atenuateContinue
-    let min = Math.ceil(this.frequencies[frequency].interval[0]);
-    let max = Math.floor(this.frequencies[frequency].interval[1]);
+  getRandomInterval(band) {
+    const min = Math.ceil(this.frequencies[band].interval[0]);
+    const max = Math.floor(this.frequencies[band].interval[1]);
     return Math.floor(Math.random() * (max - min + 1) + min);
   }
 
-  getRandFrequency() {
-    //get a random frequency by index to increment in atenuateContinue
-    let index = Math.floor(Math.random() * 3);
-    return Object.keys(this.currentFrequencies)[index];
-  }
-
-  ///OFFSET
   setRandomOffset() {
-    //set random base offset
     return Math.floor(Math.random() * 40);
   }
 
-  setup(){
-    this.setInitialFrequencies();
-    this.beta.updateOscillators(this.frequencies.beta.frequency, this.frequencies.beta.offset);
-    this.gamma.updateOscillators(this.frequencies.gamma.frequency, this.frequencies.gamma.offset);
-  }
+  update() {
+    const limit = 30;
 
-  update(){
-    let limit = 30; //offset limit
+    const beta = this.frequencies.beta;
+    const gamma = this.frequencies.gamma;
 
-    let beta = this.frequencies.beta;
-    let gamma = this.frequencies.gamma;
+    const betaBounds = this.getMinMax("beta");
+    const gammaBounds = this.getMinMax("gamma");
 
-    let bKey = "beta";
-    let gKey = "gamma";
-
-    console.log(
-      `Beta: ${beta.frequency} bOffset: ${beta.offset} Gamma: ${gamma.frequency} gOffset: ${gamma.offset}`
-    );
-
-    //verify and update on limits of dict frequency beta
-    if (beta.frequency < Object.values(this.getMinMax(bKey))[0]) {
+    if (beta.frequency < betaBounds.min) {
       beta.frequency += 1;
-    } else if (beta.frequency > Object.values(this.getMinMax(bKey))[1]) {
-      beta.frequency += -1;
-    } else beta.frequency += this.setDirection();
+    } else if (beta.frequency > betaBounds.max) {
+      beta.frequency -= 1;
+    } else {
+      beta.frequency += this.setDirection();
+    }
 
-    //verify and update on limits of dict frequency gamma
-    if (gamma.frequency < Object.values(this.getMinMax(gKey))[0]) {
+    if (gamma.frequency < gammaBounds.min) {
       gamma.frequency += 1;
-    } else if (gamma.frequency > Object.values(this.getMinMax(gKey))[1]) {
-      gamma.frequency += -1;
-    } else gamma.frequency += this.setDirection();
+    } else if (gamma.frequency > gammaBounds.max) {
+      gamma.frequency -= 1;
+    } else {
+      gamma.frequency += this.setDirection();
+    }
 
-    //verify and update in beta offset limits
-    if (beta.offset < beta.frequency - limit || beta.offset == 0) {
+    if (beta.offset < beta.frequency - limit || beta.offset === 0) {
       beta.offset += 1;
     } else if (beta.offset > beta.frequency + limit) {
-      beta.offset += -1;
-    } else beta.offset += this.setDirection();
+      beta.offset -= 1;
+    } else {
+      beta.offset += this.setDirection();
+    }
 
-    //verify and update in gamma offset limits
-    if (gamma.offset < gamma.frequency - limit || gamma.offset == 0) {
+    if (gamma.offset < gamma.frequency - limit || gamma.offset === 0) {
       gamma.offset += 1;
     } else if (gamma.offset > gamma.frequency + limit) {
-      gamma.offset += -1;
-    } else gamma.offset += this.setDirection();
+      gamma.offset -= 1;
+    } else {
+      gamma.offset += this.setDirection();
+    }
 
-    this.beta.updateOscillators(beta.frequency, beta.offset);
-    this.gamma.updateOscillators(gamma.frequency, gamma.offset);
+    this.engine.setTrackFrequencies("beta", beta.frequency, beta.frequency + beta.offset);
+    this.engine.setTrackFrequencies("gamma", gamma.frequency, gamma.frequency + gamma.offset);
   }
-
 }
 
 export { RandomGenerator };

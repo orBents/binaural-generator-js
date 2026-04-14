@@ -1,0 +1,289 @@
+﻿import { BinauralEngine } from "./core/BinauralEngine.mjs";
+import { LofiEngine } from "./core/LofiEngine.mjs";
+import { getMaxBinauralMix } from "./config/audioConfig.mjs";
+import { PRESET_KEYS, getPreset } from "./utils/presets.mjs";
+import { Visualizer } from "./ui/Visualizer.mjs";
+import { createState } from "./state.js";
+
+const appState = createState();
+const initial = appState.getState();
+
+const engine = new BinauralEngine({
+  masterGain: initial.binaural.mix,
+  masterVolume: initial.binaural.masterVolume,
+});
+
+const lofiEngine = new LofiEngine(engine.getAudioContext(), engine.getAtmosphereInputNode(), {
+  intensity: initial.lofi.intensity,
+  volume: initial.lofi.volume,
+  vinylEnabled: initial.lofi.vinylEnabled,
+});
+
+const btnPlay = document.getElementById("play-btn");
+const presetSelect = document.getElementById("preset-select");
+const waveTypeSelect = document.getElementById("wave-type");
+const binauralMix = document.getElementById("binaural-mix");
+const noiseMix = document.getElementById("noise-mix");
+const masterVolume = document.getElementById("master-volume");
+const lofiVolume = document.getElementById("lofi-volume");
+const lofiIntensity = document.getElementById("lofi-intensity");
+const vinylToggle = document.getElementById("vinyl-toggle");
+const grooveToggle = document.getElementById("groove-toggle");
+const oscilloscopeCanvas = document.getElementById("oscilloscope");
+const presetHint = document.getElementById("preset-hint");
+const tabButtons = document.querySelectorAll(".tab-btn");
+const tuningPanel = document.getElementById("panel-tuning");
+const rhythmPanel = document.getElementById("panel-rhythm");
+const modeButtons = document.querySelectorAll(".mode-btn");
+const binauralCapHint = document.getElementById("binaural-cap-hint");
+
+const visualizer = new Visualizer(oscilloscopeCanvas, engine.getAnalyserNode());
+visualizer.start();
+
+function setupPresetOptions() {
+  const fragment = document.createDocumentFragment();
+
+  PRESET_KEYS.forEach((presetName) => {
+    const option = document.createElement("option");
+    option.value = presetName;
+    option.textContent = presetName;
+    option.selected = presetName === appState.getState().binaural.preset;
+    fragment.appendChild(option);
+  });
+
+  presetSelect.innerHTML = "";
+  presetSelect.appendChild(fragment);
+}
+
+function applyThemeFromPreset(presetName) {
+  const preset = getPreset(presetName);
+  document.body.style.setProperty("--bg-a", preset.gradient[0]);
+  document.body.style.setProperty("--bg-b", preset.gradient[1]);
+  document.body.style.setProperty("--accent", preset.accent);
+  presetHint.textContent = `${preset.label}: batimento ${preset.beatFrequency}Hz`;
+}
+
+function applyTabUI(tabName) {
+  const tuningActive = tabName === "tuning";
+
+  tabButtons.forEach((button) => {
+    const active = button.dataset.tab === tabName;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", String(active));
+  });
+
+  tuningPanel.classList.toggle("active", tuningActive);
+  rhythmPanel.classList.toggle("active", !tuningActive);
+
+  visualizer.setStrokeColor(
+    tuningActive ? "rgba(165, 126, 235, 0.9)" : "rgba(214, 183, 255, 0.96)"
+  );
+}
+
+function updateBinauralCapUI(state) {
+  const cap = getMaxBinauralMix(state.lofi.volume);
+  binauralMix.max = String(cap);
+  binauralMix.title = `Limite atual: ${Math.round(cap * 100)}%`;
+
+  if (binauralCapHint) {
+    binauralCapHint.textContent = `Binaural limitado a ${Math.round(cap * 100)}% (10% do Beat)`;
+  }
+}
+
+function syncControlsFromState(state) {
+  presetSelect.value = state.binaural.preset;
+  waveTypeSelect.value = state.binaural.waveType;
+  binauralMix.value = String(state.binaural.mix);
+  noiseMix.value = String(state.binaural.noiseMix);
+  masterVolume.value = String(state.binaural.masterVolume);
+
+  lofiVolume.value = String(state.lofi.volume);
+  lofiIntensity.value = String(state.lofi.intensity);
+  vinylToggle.checked = state.lofi.vinylEnabled;
+  grooveToggle.checked = state.lofi.grooveEnabled;
+
+  modeButtons.forEach((button) => {
+    button.classList.toggle("active", button.dataset.mode === state.lofi.mode);
+  });
+
+  btnPlay.classList.toggle("paused", state.playback.isPlaying);
+}
+
+function applyAudioState(state) {
+  engine.setPreset(state.binaural.preset, 0);
+  engine.setWaveType(state.binaural.waveType);
+  engine.setBinauralMix(state.binaural.mix);
+  engine.setNoiseMix(state.binaural.noiseMix);
+  engine.setMasterVolume(state.binaural.masterVolume, 0);
+
+  lofiEngine.setMode(state.lofi.mode, { immediate: true });
+  lofiEngine.setVolume(state.lofi.volume, 0);
+  lofiEngine.setIntensity(state.lofi.intensity);
+  lofiEngine.setVinylEnabled(state.lofi.vinylEnabled);
+  lofiEngine.setGrooveEnabled(state.lofi.grooveEnabled);
+
+  applyThemeFromPreset(state.binaural.preset);
+  applyTabUI(state.ui.activeTab);
+}
+
+setupPresetOptions();
+syncControlsFromState(initial);
+applyAudioState(initial);
+updateBinauralCapUI(initial);
+
+appState.subscribe((state) => {
+  syncControlsFromState(state);
+  applyThemeFromPreset(state.binaural.preset);
+  applyTabUI(state.ui.activeTab);
+  updateBinauralCapUI(state);
+});
+
+presetSelect.addEventListener("change", (event) => {
+  appState.setState({
+    binaural: {
+      preset: event.target.value,
+    },
+  });
+
+  const next = appState.getState();
+  engine.setPreset(next.binaural.preset, 3);
+});
+
+waveTypeSelect.addEventListener("change", (event) => {
+  appState.setState({
+    binaural: {
+      waveType: event.target.value,
+    },
+  });
+
+  engine.setWaveType(appState.getState().binaural.waveType);
+});
+
+binauralMix.addEventListener("input", (event) => {
+  appState.setState({
+    binaural: {
+      mix: Number(event.target.value),
+    },
+  });
+
+  engine.setBinauralMix(appState.getState().binaural.mix);
+});
+
+noiseMix.addEventListener("input", (event) => {
+  appState.setState({
+    binaural: {
+      noiseMix: Number(event.target.value),
+    },
+  });
+
+  engine.setNoiseMix(appState.getState().binaural.noiseMix);
+});
+
+masterVolume.addEventListener("input", (event) => {
+  appState.setState({
+    binaural: {
+      masterVolume: Number(event.target.value),
+    },
+  });
+
+  engine.setMasterVolume(appState.getState().binaural.masterVolume);
+});
+
+lofiVolume.addEventListener("input", (event) => {
+  appState.setState({
+    lofi: {
+      volume: Number(event.target.value),
+    },
+  });
+
+  const nextState = appState.getState();
+  lofiEngine.setVolume(nextState.lofi.volume);
+  engine.setBinauralMix(nextState.binaural.mix);
+});
+
+lofiIntensity.addEventListener("input", (event) => {
+  appState.setState({
+    lofi: {
+      intensity: Number(event.target.value),
+    },
+  });
+
+  lofiEngine.setIntensity(appState.getState().lofi.intensity);
+});
+
+vinylToggle.addEventListener("change", (event) => {
+  appState.setState({
+    lofi: {
+      vinylEnabled: event.target.checked,
+    },
+  });
+
+  lofiEngine.setVinylEnabled(appState.getState().lofi.vinylEnabled);
+});
+
+grooveToggle.addEventListener("change", (event) => {
+  appState.setState({
+    lofi: {
+      grooveEnabled: event.target.checked,
+    },
+  });
+
+  lofiEngine.setGrooveEnabled(appState.getState().lofi.grooveEnabled);
+});
+
+modeButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    appState.setState({
+      lofi: {
+        mode: button.dataset.mode,
+      },
+    });
+
+    lofiEngine.setMode(appState.getState().lofi.mode);
+  });
+});
+
+tabButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    appState.setState({
+      ui: {
+        activeTab: button.dataset.tab,
+      },
+    });
+  });
+});
+
+btnPlay.addEventListener("click", async (event) => {
+  event.preventDefault();
+
+  const state = appState.getState();
+
+  try {
+    if (!state.playback.isPlaying) {
+      await engine.start();
+      await lofiEngine.start();
+      appState.setState({
+        playback: {
+          isPlaying: true,
+        },
+      });
+      return;
+    }
+
+    lofiEngine.stop();
+    await engine.stopAll(0.35);
+    appState.setState({
+      playback: {
+        isPlaying: false,
+      },
+    });
+  } catch (error) {
+    console.error("Falha ao alternar reproducao:", error);
+  }
+});
+
+window.addEventListener("beforeunload", async () => {
+  lofiEngine.stop();
+  await engine.stopAll(0.2);
+  visualizer.stop();
+});

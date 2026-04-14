@@ -1,81 +1,4 @@
-﻿@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap");
-
-:root {
-  --bg-a: #2b1843;
-  --bg-b: #4a2a70;
-  --accent: #d8baff;
-  --panel: rgba(24, 14, 40, 0.78);
-  --panel-border: rgba(220, 194, 255, 0.24);
-  --text: #f7f1ff;
-  --muted: rgba(243, 234, 255, 0.74);
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  font-family: "Manrope", sans-serif;
-  color: var(--text);
-  background: radial-gradient(120% 100% at 0% 0%, var(--bg-b), var(--bg-a));
-  transition: background 1s ease;
-}
-
-.app-shell {
-  width: min(920px, 94vw);
-  min-height: 100vh;
-  margin: 0 auto;
-  display: grid;
-  grid-template-rows: auto auto auto 1fr;
-  gap: 12px;
-  padding: 16px 0 calc(14px + env(safe-area-inset-bottom));
-}
-
-.app-header {
-  text-align: center;
-}
-
-.app-header h1 {
-  margin: 0;
-  font-size: clamp(1.8rem, 6vw, 2.6rem);
-  letter-spacing: 0.08em;
-  text-transform: lowercase;
-}
-
-.app-header .mark {
-  color: var(--accent);
-}
-
-.app-header p {
-  margin: 5px 0 0;
-  color: var(--muted);
-  font-size: 0.88rem;
-}
-
-.visualizer-card {
-  background: var(--panel);
-  border: 1px solid var(--panel-border);
-  border-radius: 16px;
-  padding: 10px;
-  backdrop-filter: blur(8px);
-}
-
-#oscilloscope {
-  width: 100%;
-  height: 118px;
-  border-radius: 10px;
-  background: rgba(8, 4, 15, 0.44);
-}
-
-.play-section {
-  display: grid;
-  place-items: center;
-  padding: 2px 0 4px;
-}
-
-.button {
+﻿.button {
   border: 0;
   padding: 0;
   width: 0;
@@ -96,22 +19,6 @@ body {
 .button.paused {
   border-style: double;
   border-width: 0 0 0 58px;
-}
-
-.controls-sheet {
-  position: sticky;
-  bottom: 0;
-  background: var(--panel);
-  border: 1px solid var(--panel-border);
-  border-radius: 18px;
-  padding: 12px;
-  display: grid;
-  gap: 10px;
-  backdrop-filter: blur(14px);
-}
-
-.master-row {
-  margin-bottom: 2px;
 }
 
 .tabs {
@@ -136,22 +43,6 @@ body {
   border-color: rgba(216, 186, 255, 0.62);
 }
 
-.tab-panel {
-  display: none;
-  gap: 10px;
-}
-
-.tab-panel.active {
-  display: grid;
-}
-
-.control-row {
-  display: grid;
-  grid-template-columns: 34px 1fr;
-  align-items: center;
-  gap: 10px;
-}
-
 .control-icon {
   width: 30px;
   height: 30px;
@@ -164,6 +55,25 @@ body {
   font-size: 0.92rem;
   line-height: 1;
   user-select: none;
+}
+
+.control-icon-tag {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.control-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.control-text {
+  color: var(--muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
 }
 
 .controls-sheet select,
@@ -187,25 +97,39 @@ body {
   accent-color: #b98bff;
 }
 
-.mode-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-}
-
 .mode-btn {
-  height: 42px;
+  height: 46px;
   border-radius: 12px;
   border: 1px solid rgba(214, 187, 255, 0.28);
   background: rgba(255, 255, 255, 0.05);
   color: var(--text);
   font-size: 1rem;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 3px;
   cursor: pointer;
+  transition: background 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
 }
 
 .mode-btn.active {
   background: rgba(185, 139, 255, 0.26);
   border-color: rgba(216, 186, 255, 0.6);
+}
+
+.mode-btn:hover {
+  transform: translateY(-1px);
+}
+
+.mode-icon {
+  font-size: 0.98rem;
+  line-height: 1;
+}
+
+.mode-text {
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+  color: var(--muted);
 }
 
 .toggle-inline {
@@ -264,15 +188,6 @@ body {
 }
 
 @media (max-width: 760px) {
-  .app-shell {
-    gap: 10px;
-    padding-top: 14px;
-  }
-
-  #oscilloscope {
-    height: 104px;
-  }
-
   .button {
     height: 56px;
     border-width: 29px 0 29px 48px;
@@ -280,11 +195,5 @@ body {
 
   .button.paused {
     border-width: 0 0 0 48px;
-  }
-
-  .controls-sheet {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    padding-bottom: calc(12px + env(safe-area-inset-bottom));
   }
 }

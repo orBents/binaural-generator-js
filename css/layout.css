@@ -1,0 +1,85 @@
+﻿.app-shell {
+  width: min(920px, 94vw);
+  min-height: 100vh;
+  margin: 0 auto;
+  display: grid;
+  grid-template-rows: auto auto auto 1fr;
+  gap: 12px;
+  padding: 16px 0 calc(14px + env(safe-area-inset-bottom));
+}
+
+.visualizer-card {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  padding: 10px;
+  backdrop-filter: blur(8px);
+}
+
+#oscilloscope {
+  width: 100%;
+  height: 118px;
+  border-radius: 10px;
+  background: rgba(8, 4, 15, 0.44);
+}
+
+.play-section {
+  display: grid;
+  place-items: center;
+  padding: 2px 0 4px;
+}
+
+.controls-sheet {
+  position: sticky;
+  bottom: 0;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 18px;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+  backdrop-filter: blur(14px);
+}
+
+.master-row {
+  margin-bottom: 2px;
+}
+
+.tab-panel {
+  display: none;
+  gap: 10px;
+}
+
+.tab-panel.active {
+  display: grid;
+}
+
+.control-row {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  align-items: center;
+  gap: 10px;
+}
+
+.mode-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    gap: 10px;
+    padding-top: 14px;
+  }
+
+  #oscilloscope {
+    height: 104px;
+  }
+
+  .controls-sheet {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+}
