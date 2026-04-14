@@ -40,9 +40,12 @@
   gap: 6px;
 }
 
-.controls-grid {
+.global-grid {
+  grid-template-columns: 1fr;
+}
+
+.modules-stack {
   display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
 
@@ -62,6 +65,10 @@
   box-shadow: inset 0 0 0 1px rgba(182, 156, 212, 0.24);
 }
 
+.harmonics-card {
+  box-shadow: inset 0 0 0 1px rgba(167, 145, 202, 0.25);
+}
+
 .card-title {
   margin: 0 0 10px;
   font-size: 1.3rem;
@@ -75,6 +82,23 @@
 
 .rhythm-card .card-title {
   color: var(--color-accent-secondary);
+}
+
+.harmonics-card .card-title {
+  color: #c6b0e2;
+}
+
+.module-summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.module-summary::-webkit-details-marker {
+  display: none;
+}
+
+.module-content {
+  padding-top: 2px;
 }
 
 .control-stack {

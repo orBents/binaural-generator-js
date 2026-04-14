@@ -25,6 +25,7 @@ class BeatEngine {
 
     this.bpm = options.bpm ?? GENERATIVE_CONFIG.bpm;
     this.swing = options.swing ?? GENERATIVE_CONFIG.beat.swing;
+    this.grooveEnabled = false;
     this.stepIndex = 0;
     this.nextStepTime = 0;
     this.schedulerInterval = null;
@@ -95,6 +96,10 @@ class BeatEngine {
     this.swing = clamp(Number(amount), 0, 0.06);
   }
 
+  setGrooveEnabled(enabled) {
+    this.grooveEnabled = Boolean(enabled);
+  }
+
   setLowPassHz(value) {
     const target = clamp(Number(value), 900, 3000);
     const now = this.audioContext.currentTime;
@@ -138,17 +143,24 @@ class BeatEngine {
     const snareHit = this.patterns.snare[step] === 1;
     const hatHit = this.patterns.hat[step] === 1;
 
+    const groovePull = this.grooveEnabled && step % 2 === 1 ? 0.008 : 0;
+    const groovePush = this.grooveEnabled && step % 4 === 2 ? -0.004 : 0;
+    const swungTime = time + groovePull + groovePush;
+
     if (kickHit) {
-      this._trigger(this.kickBuffer, time, 0.88, 0.36);
+      this._trigger(this.kickBuffer, swungTime, this.grooveEnabled ? 0.92 : 0.88, 0.36);
     }
 
     if (snareHit) {
-      this._trigger(this.snareBuffer, time, 0.5, 0.24);
+      this._trigger(this.snareBuffer, swungTime, this.grooveEnabled ? 0.58 : 0.5, 0.24);
     }
 
     if (hatHit) {
-      const hatTime = step % 2 === 1 ? time + this.swing : time;
-      this._trigger(this.hatBuffer, hatTime, 0.22, 0.1);
+      const hatTime = step % 2 === 1 ? swungTime + this.swing : swungTime;
+      const hatVelocity = this.grooveEnabled
+        ? (step % 2 === 1 ? 0.31 : 0.2)
+        : 0.22;
+      this._trigger(this.hatBuffer, hatTime, hatVelocity, 0.1);
     }
 
     if (this.onStep) {

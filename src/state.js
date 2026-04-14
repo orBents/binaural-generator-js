@@ -16,10 +16,10 @@ const DEFAULT_STATE = {
   },
   lofi: {
     mode: "soft",
+    globalBpm: DEFAULT_VOLUME_STATE.globalBpm,
     volume: DEFAULT_VOLUME_STATE.beatVolume,
     intensity: DEFAULT_VOLUME_STATE.beatIntensity,
     pianoTimbre: "classico",
-    bpmBoostEnabled: false,
     pianoProbability: 0.4,
     beatDensity: "high",
     vinylEnabled: false,

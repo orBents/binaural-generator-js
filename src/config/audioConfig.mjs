@@ -74,6 +74,7 @@ const DEFAULT_VOLUME_STATE = {
   binauralMix: 0.08,
   noiseMix: 0.02,
   masterVolume: 0.78,
+  globalBpm: 72,
   beatVolume: 0.82,
   beatIntensity: 0.62,
 };
@@ -199,12 +200,12 @@ function applyAudioPolicy(state) {
     },
     lofi: {
       ...state.lofi,
+      globalBpm: clamp(state.lofi.globalBpm, 48, 120),
       volume: beatVolume,
       intensity,
       pianoProbability: highIntensity ? 0.7 : 0.2,
       beatDensity: highIntensity ? "high" : "low",
       pianoTimbre,
-      bpmBoostEnabled: Boolean(state.lofi.bpmBoostEnabled),
     },
   };
 }

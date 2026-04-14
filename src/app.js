@@ -17,7 +17,7 @@ const lofiEngine = new LofiEngine(engine.getAudioContext(), engine.getAtmosphere
   intensity: initial.lofi.intensity,
   volume: initial.lofi.volume,
   vinylEnabled: initial.lofi.vinylEnabled,
-  bpmBoostEnabled: initial.lofi.bpmBoostEnabled,
+  globalBpm: initial.lofi.globalBpm,
 });
 
 const btnPlay = document.getElementById("play-btn");
@@ -26,16 +26,15 @@ const waveTypeSelect = document.getElementById("wave-type");
 const binauralMix = document.getElementById("binaural-mix");
 const noiseMix = document.getElementById("noise-mix");
 const masterVolume = document.getElementById("master-volume");
+const globalBpm = document.getElementById("global-bpm");
 const lofiVolume = document.getElementById("lofi-volume");
 const lofiIntensity = document.getElementById("lofi-intensity");
 const pianoTimbre = document.getElementById("piano-timbre");
 const vinylToggle = document.getElementById("vinyl-toggle");
 const grooveToggle = document.getElementById("groove-toggle");
-const bpmBoostToggle = document.getElementById("bpm-boost-toggle");
 const oscilloscopeCanvas = document.getElementById("oscilloscope");
 const presetHint = document.getElementById("preset-hint");
-const tuningCard = document.querySelector(".tuning-card");
-const rhythmCard = document.querySelector(".rhythm-card");
+const modulePanels = document.querySelectorAll(".module-panel");
 const modeButtons = document.querySelectorAll(".mode-btn");
 const binauralCapHint = document.getElementById("binaural-cap-hint");
 
@@ -90,6 +89,9 @@ function syncControlsFromState(state) {
   noiseMix.value = String(state.binaural.noiseMix);
   masterVolume.value = String(state.binaural.masterVolume);
 
+  if (globalBpm) {
+    globalBpm.value = String(state.lofi.globalBpm);
+  }
   lofiVolume.value = String(state.lofi.volume);
   lofiIntensity.value = String(state.lofi.intensity);
   if (pianoTimbre) {
@@ -97,9 +99,6 @@ function syncControlsFromState(state) {
   }
   vinylToggle.checked = state.lofi.vinylEnabled;
   grooveToggle.checked = state.lofi.grooveEnabled;
-  if (bpmBoostToggle) {
-    bpmBoostToggle.checked = state.lofi.bpmBoostEnabled;
-  }
 
   modeButtons.forEach((button) => {
     button.classList.toggle("active", button.dataset.mode === state.lofi.mode);
@@ -118,12 +117,12 @@ function applyAudioState(state) {
   engine.setMasterVolume(state.binaural.masterVolume, 0);
 
   lofiEngine.setMode(state.lofi.mode, { immediate: true });
+  lofiEngine.setGlobalBpm(state.lofi.globalBpm);
   lofiEngine.setVolume(state.lofi.volume, 0);
   lofiEngine.setIntensity(state.lofi.intensity);
   lofiEngine.setPianoTimbre(state.lofi.pianoTimbre);
   lofiEngine.setVinylEnabled(state.lofi.vinylEnabled);
   lofiEngine.setGrooveEnabled(state.lofi.grooveEnabled);
-  lofiEngine.setBpmBoostEnabled(state.lofi.bpmBoostEnabled);
 
   applyThemeFromPreset(state.binaural.preset);
   setActivePanel("tuning");
@@ -192,6 +191,18 @@ masterVolume.addEventListener("input", (event) => {
   engine.setMasterVolume(appState.getState().binaural.masterVolume);
 });
 
+if (globalBpm) {
+  globalBpm.addEventListener("input", (event) => {
+    appState.setState({
+      lofi: {
+        globalBpm: Number(event.target.value),
+      },
+    });
+
+    lofiEngine.setGlobalBpm(appState.getState().lofi.globalBpm);
+  });
+}
+
 lofiVolume.addEventListener("input", (event) => {
   appState.setState({
     lofi: {
@@ -247,18 +258,6 @@ grooveToggle.addEventListener("change", (event) => {
   lofiEngine.setGrooveEnabled(appState.getState().lofi.grooveEnabled);
 });
 
-if (bpmBoostToggle) {
-  bpmBoostToggle.addEventListener("change", (event) => {
-    appState.setState({
-      lofi: {
-        bpmBoostEnabled: event.target.checked,
-      },
-    });
-
-    lofiEngine.setBpmBoostEnabled(appState.getState().lofi.bpmBoostEnabled);
-  });
-}
-
 modeButtons.forEach((button) => {
   button.addEventListener("click", () => {
     setActivePanel("rhythm");
@@ -272,15 +271,21 @@ modeButtons.forEach((button) => {
   });
 });
 
-if (tuningCard) {
-  tuningCard.addEventListener("pointerdown", () => setActivePanel("tuning"));
-  tuningCard.addEventListener("focusin", () => setActivePanel("tuning"));
-}
+modulePanels.forEach((panel) => {
+  panel.addEventListener("toggle", () => {
+    if (!panel.open) {
+      return;
+    }
 
-if (rhythmCard) {
-  rhythmCard.addEventListener("pointerdown", () => setActivePanel("rhythm"));
-  rhythmCard.addEventListener("focusin", () => setActivePanel("rhythm"));
-}
+    modulePanels.forEach((other) => {
+      if (other !== panel && other.open) {
+        other.open = false;
+      }
+    });
+
+    setActivePanel(panel.dataset.panel || "tuning");
+  });
+});
 
 btnPlay.addEventListener("click", async (event) => {
   event.preventDefault();

@@ -37,14 +37,19 @@
     </section>
 
     <section class="controls-sheet" aria-label="Controles de audio">
-      <div class="master-row">
+      <div class="master-row global-grid">
         <label class="control-label" for="master-volume">Volume Geral</label>
         <input type="range" id="master-volume" class="slider slider-master" min="0" max="1" value="0.78" step="0.01" aria-label="Volume geral">
+        <label class="control-label" for="global-bpm">BPM Global</label>
+        <input type="range" id="global-bpm" class="slider slider-master" min="48" max="120" value="72" step="1" aria-label="BPM global">
       </div>
 
-      <div class="controls-grid">
-        <article class="control-card tuning-card" aria-label="Area Sintonia">
-          <h2 class="card-title">Sintonia</h2>
+      <div class="modules-stack">
+        <details class="control-card module-panel tuning-card" data-panel="tuning">
+          <summary class="module-summary">
+            <h2 class="card-title">Sintonia</h2>
+          </summary>
+          <div class="module-content" aria-label="Area Sintonia">
 
           <div class="control-stack">
             <label class="control-label" for="preset-select">Preset</label>
@@ -71,10 +76,14 @@
             <label class="control-label" for="noise-mix">Brown Noise</label>
             <input type="range" id="noise-mix" class="slider tuning-slider" min="0" max="0.35" value="0.02" step="0.005" aria-label="Volume Ruido Marrom">
           </div>
-        </article>
+          </div>
+        </details>
 
-        <article class="control-card rhythm-card" aria-label="Area Ritmo">
-          <h2 class="card-title">Ritmo</h2>
+        <details class="control-card module-panel rhythm-card" data-panel="rhythm">
+          <summary class="module-summary">
+            <h2 class="card-title">Ritmo</h2>
+          </summary>
+          <div class="module-content" aria-label="Area Ritmo">
 
           <div class="control-stack">
             <label class="control-label" for="lofi-volume">Volume Beat</label>
@@ -84,16 +93,6 @@
           <div class="control-stack">
             <label class="control-label" for="lofi-intensity">Intensidade</label>
             <input type="range" id="lofi-intensity" class="slider rhythm-slider" min="0" max="1" value="0.62" step="0.01" aria-label="Intensidade Beat">
-          </div>
-
-          <div class="control-stack">
-            <label class="control-label" for="piano-timbre">Timbre Piano</label>
-            <select id="piano-timbre" aria-label="Timbre do piano">
-              <option value="classico" selected>Classico</option>
-              <option value="nylon">Violao de Nylon</option>
-              <option value="8bits">8 Bits</option>
-              <option value="synth">Synth</option>
-            </select>
           </div>
 
           <div class="toggle-row">
@@ -108,14 +107,6 @@
             <span class="control-label">Groove</span>
             <label class="switch" for="groove-toggle">
               <input type="checkbox" id="groove-toggle" aria-label="Ativar groove switch">
-              <span class="switch-track"><span class="switch-thumb"></span></span>
-            </label>
-          </div>
-
-          <div class="toggle-row">
-            <span class="control-label">BPM Boost</span>
-            <label class="switch" for="bpm-boost-toggle">
-              <input type="checkbox" id="bpm-boost-toggle" aria-label="Aumentar BPM global">
               <span class="switch-track"><span class="switch-thumb"></span></span>
             </label>
           </div>
@@ -153,7 +144,25 @@
               <span>Space</span>
             </button>
           </div>
-        </article>
+          </div>
+        </details>
+
+        <details class="control-card module-panel harmonics-card" data-panel="harmonics">
+          <summary class="module-summary">
+            <h2 class="card-title">Harmonics</h2>
+          </summary>
+          <div class="module-content" aria-label="Area Harmonics">
+            <div class="control-stack">
+              <label class="control-label" for="piano-timbre">Timbre Piano</label>
+              <select id="piano-timbre" aria-label="Timbre do piano">
+                <option value="classico" selected>Classico</option>
+                <option value="nylon">Violao de Nylon</option>
+                <option value="8bits">8 Bits</option>
+                <option value="synth">Synth</option>
+              </select>
+            </div>
+          </div>
+        </details>
       </div>
     </section>
   </main>

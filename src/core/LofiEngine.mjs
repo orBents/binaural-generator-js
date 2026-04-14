@@ -31,7 +31,7 @@ class LofiEngine {
     this.crackleGain.connect(this.masterGain);
 
     this.beatEngine = new BeatEngine(this.audioContext, this.beatBus, {
-      bpm: options.bpm ?? GENERATIVE_CONFIG.bpm,
+      bpm: options.globalBpm ?? GENERATIVE_CONFIG.bpm,
       volume: options.volume ?? 0.82,
     });
 
@@ -43,10 +43,9 @@ class LofiEngine {
 
     this.intensity = clamp(options.intensity ?? 0.62, 0, 1);
     this.volume = clamp(options.volume ?? 0.82, 0, 1);
+    this.globalBpm = clamp(options.globalBpm ?? GENERATIVE_CONFIG.bpm, 48, 120);
     this.vinylEnabled = Boolean(options.vinylEnabled);
     this.grooveEnabled = false;
-    this.bpmBoostEnabled = Boolean(options.bpmBoostEnabled);
-    this.bpmBoostMultiplier = 1.3;
 
     this.mode = "soft";
     this.running = false;
@@ -61,9 +60,9 @@ class LofiEngine {
     });
 
     this.setMode(this.mode, { immediate: true });
+    this.setGlobalBpm(this.globalBpm);
     this.setIntensity(this.intensity);
     this.setPianoTimbre(options.pianoTimbre ?? GENERATIVE_CONFIG.piano.timbre);
-    this.setBpmBoostEnabled(options.bpmBoostEnabled);
     this.setVolume(this.volume, 0);
     this.setVinylEnabled(this.vinylEnabled);
   }
@@ -98,27 +97,18 @@ class LofiEngine {
     applyFade(this.audioContext, this.masterGain.gain, this.minGain, AUDIO_RAMP.stopFade, true, this.minGain);
   }
 
+  setGlobalBpm(value) {
+    this.globalBpm = clamp(Number(value), 48, 120);
+    this.beatEngine.setBpm(this._getEffectiveBpm());
+  }
+
   setIntensity(value) {
     this.intensity = clamp(Number(value), 0, 1);
 
     const isHigh = this.intensity >= 0.55;
-    const pianoProbability = isHigh ? 0.7 : 0.2;
-    this.pianoEngine.setProbability(pianoProbability);
+    this.pianoEngine.setProbability(isHigh ? 0.7 : 0.2);
 
-    if (isHigh) {
-      this.beatEngine.setPatterns({
-        kick: [1, 0, 0, 0, 1, 0, 0, 0],
-        snare: [0, 0, 1, 0, 0, 0, 1, 1],
-        hat: [1, 1, 1, 1, 1, 1, 1, 1],
-      });
-    } else {
-      this.beatEngine.setPatterns({
-        kick: [1, 0, 0, 0, 1, 0, 0, 0],
-        snare: [0, 0, 0, 0, 0, 0, 0, 0],
-        hat: [1, 0, 1, 0, 1, 0, 1, 0],
-      });
-    }
-
+    this._applyRhythmIdentity();
     this._applyBeatDynamics(AUDIO_RAMP.normal);
     this._applyCrackleBase(AUDIO_RAMP.normal);
   }
@@ -147,7 +137,9 @@ class LofiEngine {
 
   setGrooveEnabled(enabled) {
     this.grooveEnabled = Boolean(enabled);
-    this.beatEngine.setSwing(this.grooveEnabled ? 0.022 : this.modeConfig[this.mode]?.swing ?? 0.01);
+    this.beatEngine.setGrooveEnabled(this.grooveEnabled);
+    this.beatEngine.setSwing(this.grooveEnabled ? 0.032 : this.modeConfig[this.mode]?.swing ?? 0.01);
+    this._applyRhythmIdentity();
   }
 
   setMode(mode, options = {}) {
@@ -159,13 +151,12 @@ class LofiEngine {
     const config = this.modeConfig[mode];
     this.mode = mode;
 
-    const effectiveBpm = this.bpmBoostEnabled
-      ? config.bpm * this.bpmBoostMultiplier
-      : config.bpm;
-    this.beatEngine.setBpm(effectiveBpm);
+    this.beatEngine.setBpm(this._getEffectiveBpm());
     this.beatEngine.setLowPassHz(config.lowPass);
-    this.beatEngine.setSwing(this.grooveEnabled ? 0.022 : config.swing);
+    this.beatEngine.setSwing(this.grooveEnabled ? 0.032 : config.swing);
     this.pianoEngine.setScale(config.scale);
+
+    this._applyRhythmIdentity();
 
     const ramp = immediate ? 0.02 : AUDIO_RAMP.slow;
     applyFade(this.audioContext, this.pianoBus.gain, mode === "deep" ? 0.52 : 0.72, ramp, true, this.minGain);
@@ -175,13 +166,83 @@ class LofiEngine {
     this.pianoEngine.setTimbre(timbre);
   }
 
-  setBpmBoostEnabled(enabled) {
-    this.bpmBoostEnabled = Boolean(enabled);
-    this.setMode(this.mode, { immediate: true });
-  }
-
   setOnPianoNote(callback) {
     this.pianoEngine.setOnNote(callback);
+  }
+
+  _getEffectiveBpm() {
+    const modeOffset = (this.modeConfig[this.mode]?.bpm ?? GENERATIVE_CONFIG.bpm) - GENERATIVE_CONFIG.bpm;
+    const grooveOffset = this.grooveEnabled ? 2 : 0;
+    return clamp(this.globalBpm + modeOffset + grooveOffset, 42, 180);
+  }
+
+  _applyRhythmIdentity() {
+    const high = this.intensity >= 0.55;
+
+    const modePatterns = {
+      soft: {
+        low: {
+          kick: [1, 0, 0, 0, 1, 0, 0, 0],
+          snare: [0, 0, 0, 0, 0, 0, 0, 0],
+          hat: [1, 0, 1, 0, 1, 0, 1, 0],
+        },
+        high: {
+          kick: [1, 0, 0, 0, 1, 0, 0, 0],
+          snare: [0, 0, 1, 0, 0, 0, 1, 0],
+          hat: [1, 1, 1, 1, 1, 1, 1, 1],
+        },
+      },
+      jazzy: {
+        low: {
+          kick: [1, 0, 0, 1, 0, 0, 1, 0],
+          snare: [0, 0, 0, 0, 0, 1, 0, 0],
+          hat: [1, 1, 0, 1, 1, 1, 0, 1],
+        },
+        high: {
+          kick: [1, 0, 0, 1, 0, 0, 1, 0],
+          snare: [0, 0, 1, 0, 0, 1, 1, 0],
+          hat: [1, 1, 1, 1, 1, 1, 1, 1],
+        },
+      },
+      deep: {
+        low: {
+          kick: [1, 0, 0, 0, 1, 0, 1, 0],
+          snare: [0, 0, 0, 0, 0, 0, 0, 0],
+          hat: [1, 0, 0, 1, 1, 0, 0, 1],
+        },
+        high: {
+          kick: [1, 0, 0, 0, 1, 0, 1, 0],
+          snare: [0, 0, 1, 0, 0, 0, 1, 0],
+          hat: [1, 1, 0, 1, 1, 1, 0, 1],
+        },
+      },
+      space: {
+        low: {
+          kick: [1, 0, 0, 0, 1, 0, 0, 1],
+          snare: [0, 0, 0, 0, 0, 0, 1, 0],
+          hat: [1, 0, 1, 1, 1, 0, 1, 1],
+        },
+        high: {
+          kick: [1, 0, 0, 0, 1, 0, 0, 1],
+          snare: [0, 0, 1, 0, 0, 0, 1, 0],
+          hat: [1, 1, 1, 1, 1, 1, 1, 1],
+        },
+      },
+    };
+
+    const selection = modePatterns[this.mode] || modePatterns.soft;
+    const base = high ? selection.high : selection.low;
+
+    if (!this.grooveEnabled) {
+      this.beatEngine.setPatterns(base);
+      return;
+    }
+
+    const groovedHat = base.hat.map((value, idx) => (idx % 2 === 1 ? 1 : value));
+    this.beatEngine.setPatterns({
+      ...base,
+      hat: groovedHat,
+    });
   }
 
   _ensureCrackleSourceStarted() {
@@ -278,4 +339,3 @@ class LofiEngine {
 }
 
 export { LofiEngine };
-
