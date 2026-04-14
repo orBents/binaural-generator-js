@@ -1,11 +1,11 @@
 :root {
-  --color-bg-deep: #0a0e1a;
-  --color-surface-base: #10162a;
-  --color-accent-cyan: #40e0d0;
-  --color-accent-magenta: #ff00ff;
-  --color-text-primary: #ffffff;
-  --color-text-muted: #8899ac;
-  --color-ui-control-active: rgba(15, 255, 243, 0.2);
+  --color-bg-deep: #151222;
+  --color-surface-base: #211a33;
+  --color-accent-primary: #9a86bc;
+  --color-accent-secondary: #b79fd4;
+  --color-text-primary: #f2edf8;
+  --color-text-muted: #b9afc8;
+  --color-ui-control-active: rgba(154, 134, 188, 0.24);
 }
 
 * {
@@ -21,7 +21,7 @@ body {
 body {
   font-family: "Inter", "Montserrat", "Segoe UI", Arial, sans-serif;
   color: var(--color-text-primary);
-  background: linear-gradient(180deg, #024354 0%, #0a0a1a 100%);
+  background: linear-gradient(180deg, #1d172b 0%, #141021 48%, #100d19 100%);
   overflow-x: hidden;
 }
 
@@ -39,7 +39,7 @@ body {
 }
 
 .app-header .mark {
-  color: var(--color-accent-cyan);
+  color: var(--color-accent-secondary);
 }
 
 .app-header p {

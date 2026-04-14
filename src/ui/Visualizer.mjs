@@ -4,8 +4,9 @@ class Visualizer {
     this.analyser = analyserNode;
     this.ctx = canvas?.getContext("2d") || null;
     this.animationFrame = null;
-    this.strokeColor = "rgba(64, 224, 208, 0.95)";
+    this.strokeColor = "rgba(157, 137, 190, 0.9)";
     this.phase = 0;
+    this.pianoPulse = 0;
 
     this.analyser.fftSize = 2048;
     this.bufferLength = this.analyser.fftSize;
@@ -35,6 +36,11 @@ class Visualizer {
 
   setStrokeColor(color) {
     this.strokeColor = color;
+  }
+
+  triggerPianoPulse(strength = 1) {
+    const safe = Math.min(1.4, Math.max(0.1, Number(strength) || 1));
+    this.pianoPulse = Math.max(this.pianoPulse, safe);
   }
 
   _resizeCanvas() {
@@ -71,7 +77,8 @@ class Visualizer {
     }
 
     const rms = Math.sqrt(energy / this.bufferLength);
-    const dynamicScale = Math.min(1.1, 0.16 + rms * 3.1);
+    const pulseBoost = 1 + this.pianoPulse * 0.65;
+    const dynamicScale = Math.min(1.6, (0.16 + rms * 3.1) * pulseBoost);
 
     this.ctx.clearRect(0, 0, width, height);
     this.ctx.lineWidth = Math.max(1.6, width / 420);
@@ -114,7 +121,8 @@ class Visualizer {
     this.ctx.stroke();
     this.ctx.shadowBlur = 0;
 
-    this.phase += 0.045;
+    this.phase += 0.045 + this.pianoPulse * 0.01;
+    this.pianoPulse *= 0.93;
     this.animationFrame = requestAnimationFrame(this._draw);
   };
 }

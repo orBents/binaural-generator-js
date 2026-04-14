@@ -8,12 +8,12 @@
   border-radius: 50%;
   border: 0;
   color: #ffffff;
-  background: radial-gradient(circle at 35% 28%, #ff48ff 0%, #d221d0 65%, #9b30ff 100%);
+  background: radial-gradient(circle at 35% 28%, #b5a0d0 0%, #9076b2 65%, #6c5889 100%);
   box-shadow:
     0 16px 26px rgba(0, 0, 0, 0.45),
-    0 0 0 5px rgba(255, 255, 255, 0.06),
-    inset 0 2px 4px rgba(255, 255, 255, 0.25),
-    inset 0 -8px 18px rgba(84, 0, 95, 0.35);
+    0 0 0 5px rgba(236, 229, 248, 0.06),
+    inset 0 2px 4px rgba(255, 255, 255, 0.18),
+    inset 0 -8px 18px rgba(38, 24, 58, 0.35);
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -21,7 +21,7 @@
 }
 
 .button:hover {
-  filter: brightness(1.05);
+  filter: brightness(1.02);
 }
 
 .button:active {
@@ -63,8 +63,8 @@ select {
   width: 100%;
   min-height: 40px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(7, 20, 40, 0.7);
+  border: 1px solid rgba(178, 159, 208, 0.28);
+  background: rgba(26, 21, 40, 0.82);
   color: var(--color-text-primary);
   padding: 8px;
 }
@@ -81,7 +81,7 @@ select {
 .slider::-webkit-slider-runnable-track {
   height: 4px;
   border-radius: 999px;
-  background: rgba(8, 12, 26, 0.85);
+  background: rgba(23, 18, 35, 0.9);
 }
 
 .slider::-webkit-slider-thumb {
@@ -91,14 +91,14 @@ select {
   border-radius: 50%;
   border: 0;
   margin-top: -7px;
-  background: #ffffff;
-  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.25));
+  background: #d8cbe8;
+  filter: drop-shadow(0 0 4px rgba(155, 132, 190, 0.22));
 }
 
 .slider::-moz-range-track {
   height: 4px;
   border-radius: 999px;
-  background: rgba(8, 12, 26, 0.85);
+  background: rgba(23, 18, 35, 0.9);
 }
 
 .slider::-moz-range-thumb {
@@ -106,26 +106,26 @@ select {
   height: 18px;
   border-radius: 50%;
   border: 0;
-  background: #ffffff;
-  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.25));
+  background: #d8cbe8;
+  filter: drop-shadow(0 0 4px rgba(155, 132, 190, 0.22));
 }
 
 .tuning-slider::-webkit-slider-thumb,
 .slider-master::-webkit-slider-thumb {
-  background: var(--color-accent-cyan);
+  background: var(--color-accent-primary);
 }
 
 .rhythm-slider::-webkit-slider-thumb {
-  background: var(--color-accent-magenta);
+  background: var(--color-accent-secondary);
 }
 
 .tuning-slider::-moz-range-thumb,
 .slider-master::-moz-range-thumb {
-  background: var(--color-accent-cyan);
+  background: var(--color-accent-primary);
 }
 
 .rhythm-slider::-moz-range-thumb {
-  background: var(--color-accent-magenta);
+  background: var(--color-accent-secondary);
 }
 
 .switch {
@@ -144,8 +144,8 @@ select {
   width: 52px;
   height: 30px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(7, 12, 26, 0.75);
+  border: 1px solid rgba(180, 162, 208, 0.3);
+  background: rgba(25, 19, 37, 0.82);
   display: inline-flex;
   align-items: center;
   padding: 2px;
@@ -156,19 +156,19 @@ select {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(229, 220, 241, 0.96);
   transform: translateX(0);
   transition: transform 0.25s ease;
 }
 
 .switch input:checked + .switch-track {
-  border-color: rgba(64, 224, 208, 0.8);
-  background: rgba(64, 224, 208, 0.25);
+  border-color: rgba(173, 149, 206, 0.85);
+  background: rgba(154, 134, 188, 0.3);
 }
 
 .switch input:checked + .switch-track .switch-thumb {
   transform: translateX(22px);
-  background: var(--color-accent-cyan);
+  background: var(--color-accent-secondary);
 }
 
 .mode-row {
@@ -180,9 +180,9 @@ select {
 .mode-btn {
   min-height: 62px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 0, 255, 0.25);
-  background: rgba(255, 255, 255, 0.03);
-  color: #f7d7ff;
+  border: 1px solid rgba(182, 156, 212, 0.28);
+  background: rgba(36, 29, 53, 0.64);
+  color: #ded0f0;
   display: grid;
   place-items: center;
   gap: 5px;
@@ -206,9 +206,9 @@ select {
 }
 
 .mode-btn.active {
-  background: rgba(255, 0, 255, 0.18);
-  border-color: rgba(255, 0, 255, 0.55);
-  color: #ffb6ff;
+  background: rgba(145, 123, 179, 0.3);
+  border-color: rgba(190, 164, 221, 0.55);
+  color: #efe3ff;
 }
 
 @media (max-width: 700px) {

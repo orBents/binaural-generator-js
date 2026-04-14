@@ -25,11 +25,11 @@
 
 .controls-sheet {
   margin-top: auto;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(42, 34, 62, 0.48);
+  border: 1px solid rgba(175, 156, 204, 0.2);
   border-radius: 24px 24px 0 0;
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(120%);
+  -webkit-backdrop-filter: blur(18px) saturate(120%);
   padding: 12px;
   display: grid;
   gap: 12px;
@@ -49,17 +49,17 @@
 .control-card {
   border-radius: 16px;
   padding: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(172, 154, 201, 0.18);
+  background: rgba(34, 28, 52, 0.64);
   min-width: 0;
 }
 
 .tuning-card {
-  box-shadow: inset 0 0 0 1px rgba(64, 224, 208, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(153, 132, 188, 0.28);
 }
 
 .rhythm-card {
-  box-shadow: inset 0 0 0 1px rgba(255, 0, 255, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(182, 156, 212, 0.24);
 }
 
 .card-title {
@@ -70,11 +70,11 @@
 }
 
 .tuning-card .card-title {
-  color: var(--color-accent-cyan);
+  color: var(--color-accent-primary);
 }
 
 .rhythm-card .card-title {
-  color: var(--color-accent-magenta);
+  color: var(--color-accent-secondary);
 }
 
 .control-stack {
