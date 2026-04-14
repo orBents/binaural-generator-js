@@ -50,8 +50,8 @@ const LOFI_MODE_DEFAULTS = {
 const GENERATIVE_CONFIG = {
   bpm: 72,
   scales: {
-    dreamy: ["C3", "D3", "E3", "G3", "A3", "C4"],
-    zen: ["F3", "Ab3", "Bb3", "C4", "Eb4", "F4"],
+    dreamy: ["C3", "D3", "Eb3", "F3", "G3", "Ab3", "Bb3", "C4", "D4"],
+    zen: ["F3", "G3", "Ab3", "Bb3", "C4", "Db4", "Eb4", "F4", "G4"],
   },
   piano: {
     probability: 0.4,

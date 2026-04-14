@@ -56,8 +56,8 @@ class LofiEngine {
 
     this.modeConfig = LOFI_MODE_DEFAULTS;
 
-    this.beatEngine.setOnStep(({ time }) => {
-      this.pianoEngine.playStep(time);
+    this.beatEngine.setOnStep(({ time, step }) => {
+      this.pianoEngine.playStep({ time, step });
     });
 
     this.setMode(this.mode, { immediate: true });

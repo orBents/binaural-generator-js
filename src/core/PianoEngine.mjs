@@ -41,6 +41,23 @@ class PianoEngine {
       synth: this._createPeriodicWave([1, 0.78, 0.64, 0.49, 0.32, 0.2, 0.11]),
     };
 
+    this.stepsPerBar = 8;
+    this.currentBar = -1;
+    this.currentChordKey = "i9";
+    this.lastPhraseDirection = 1;
+
+    // Jazz-inspired minor-loop with tonic resolution and ii?-V motion.
+    this.progression = [
+      "i9",
+      "iv9",
+      "bVII13",
+      "IIImaj7",
+      "iiHalfDim7",
+      "V7b9",
+      "i9",
+      "V7sus4",
+    ];
+
     this.setTimbre(options.timbre ?? GENERATIVE_CONFIG.piano.timbre);
   }
 
@@ -52,6 +69,7 @@ class PianoEngine {
     if (this.scales[scaleName]) {
       this.scaleName = scaleName;
       this.activeScale = this.scales[scaleName];
+      this.currentBar = -1;
     }
   }
 
@@ -70,29 +88,135 @@ class PianoEngine {
     this.timbre = allowed.includes(normalized) ? normalized : "classico";
   }
 
-  playStep(time) {
+  playStep(input) {
     if (!this.activeScale || this.activeScale.length === 0) {
       return;
     }
 
-    if (Math.random() > this.probability) {
+    const payload = typeof input === "number"
+      ? { time: input, step: null }
+      : input || {};
+
+    const step = Number.isInteger(payload.step) ? payload.step : null;
+    const time = Number.isFinite(payload.time) ? payload.time : this.audioContext.currentTime;
+
+    if (step !== null && step === 0) {
+      this.currentBar += 1;
+      this.currentChordKey = this.progression[this.currentBar % this.progression.length];
+    }
+
+    const strongStep = step === null ? Math.random() > 0.5 : (step === 0 || step === 4);
+    const densityBoost = strongStep ? 0.22 : 0;
+
+    if (Math.random() > clamp(this.probability + densityBoost, 0, 0.94)) {
       return;
     }
 
-    const note = this.activeScale[Math.floor(Math.random() * this.activeScale.length)];
-    const frequency = noteToFrequency(note);
+    const harmonicContext = this._buildHarmonicContext();
+
+    if (strongStep) {
+      this._playChordVoicing(time, harmonicContext, step);
+      return;
+    }
+
+    this._playMelodicTone(time, harmonicContext, step);
+  }
+
+  _playChordVoicing(time, harmonicContext, step) {
+    const notes = harmonicContext.chordMidis;
+    if (notes.length < 3) {
+      return;
+    }
 
     const start = Math.max(
       this.audioContext.currentTime,
       time + (Math.random() * 2 - 1) * this.humanization
     );
 
+    const voicing = [];
+    voicing.push(notes[0]);
+    voicing.push(notes[2]);
+    voicing.push(notes[3] ?? notes[1]);
+
+    if (Math.random() > 0.42) {
+      voicing.push((notes[1] ?? notes[0]) + 12);
+    }
+
+    const velocity = step === 0 ? 0.96 : 0.82;
+
+    voicing.forEach((midi, idx) => {
+      const stagger = idx * 0.012;
+      this._triggerNoteByFrequency(this._midiToFrequency(midi), start + stagger, velocity, 1.2);
+    });
+  }
+
+  _playMelodicTone(time, harmonicContext) {
+    const start = Math.max(
+      this.audioContext.currentTime,
+      time + (Math.random() * 2 - 1) * this.humanization
+    );
+
+    const phrasePool = [
+      ...harmonicContext.chordMidis,
+      ...harmonicContext.scaleMidis.filter((midi) => midi >= harmonicContext.tonicMidi - 2 && midi <= harmonicContext.tonicMidi + 19),
+    ];
+
+    if (phrasePool.length === 0) {
+      return;
+    }
+
+    const sorted = [...new Set(phrasePool)].sort((a, b) => a - b);
+
+    const direction = Math.random() > 0.58 ? -this.lastPhraseDirection : this.lastPhraseDirection;
+    this.lastPhraseDirection = direction;
+
+    const anchor = harmonicContext.chordMidis[Math.floor(Math.random() * harmonicContext.chordMidis.length)] || sorted[0];
+    let index = sorted.findIndex((value) => value >= anchor);
+    if (index < 0) {
+      index = Math.floor(sorted.length / 2);
+    }
+
+    index = clamp(index + direction * (Math.random() > 0.62 ? 1 : 0), 0, sorted.length - 1);
+
+    const midi = sorted[index];
+    const velocity = 0.64 + Math.random() * 0.2;
+    this._triggerNoteByFrequency(this._midiToFrequency(midi), start, velocity, 0.86);
+  }
+
+  _buildHarmonicContext() {
+    const tonicMidi = this._noteToMidi(this.activeScale[0] || "C3");
+    const formula = this._getChordFormula(this.currentChordKey);
+    const chordMidis = formula.map((interval) => tonicMidi + interval);
+    const scaleMidis = this.activeScale.map((note) => this._noteToMidi(note));
+
+    return {
+      tonicMidi,
+      chordMidis,
+      scaleMidis,
+    };
+  }
+
+  _getChordFormula(chordKey) {
+    const formulas = {
+      i9: [0, 3, 7, 10, 14],
+      iv9: [5, 8, 12, 15, 19],
+      bVII13: [10, 14, 17, 21],
+      IIImaj7: [3, 7, 10, 14],
+      iiHalfDim7: [2, 5, 8, 12],
+      V7b9: [7, 11, 14, 17, 20],
+      V7sus4: [7, 12, 14, 17],
+    };
+
+    return formulas[chordKey] || formulas.i9;
+  }
+
+  _triggerNoteByFrequency(frequency, start, velocity = 0.85, durationScale = 1) {
     const timbreSettings = this._getTimbreSettings(this.timbre);
     const attack = timbreSettings.attack;
     const decay = timbreSettings.decay;
-    const sustainGain = timbreSettings.sustain;
-    const sustainHold = 0.18 + Math.random() * 0.22;
-    const release = timbreSettings.release ?? this.release;
+    const sustainGain = timbreSettings.sustain * velocity;
+    const sustainHold = (0.16 + Math.random() * 0.2) * durationScale;
+    const release = (timbreSettings.release ?? this.release) * durationScale;
     const endTime = start + attack + decay + sustainHold + release;
 
     const noteGain = this.audioContext.createGain();
@@ -118,7 +242,7 @@ class PianoEngine {
     bodyGain.gain.setValueAtTime(timbreSettings.bodyMix, start);
 
     noteGain.gain.setValueAtTime(this.minGain, start);
-    noteGain.gain.linearRampToValueAtTime(timbreSettings.peak, start + attack);
+    noteGain.gain.linearRampToValueAtTime(timbreSettings.peak * velocity, start + attack);
     noteGain.gain.linearRampToValueAtTime(sustainGain, start + attack + decay);
     noteGain.gain.setValueAtTime(sustainGain, start + attack + decay + sustainHold);
     noteGain.gain.exponentialRampToValueAtTime(this.minGain, endTime);
@@ -181,7 +305,6 @@ class PianoEngine {
 
     if (this.onNote) {
       this.onNote({
-        note,
         frequency,
         time: start,
         gain: sustainGain,
@@ -393,6 +516,53 @@ class PianoEngine {
     }
 
     return buffer;
+  }
+
+  _noteToMidi(note) {
+    if (typeof note !== "string") {
+      return 60;
+    }
+
+    const parsed = note.trim().match(/^([A-Ga-g])([#b]?)(-?\d+)$/);
+    if (!parsed) {
+      return 60;
+    }
+
+    const [, rawLetter, accidental, rawOctave] = parsed;
+    const letter = rawLetter.toUpperCase();
+    const octave = Number(rawOctave);
+
+    const semitoneByLetter = {
+      C: 0,
+      D: 2,
+      E: 4,
+      F: 5,
+      G: 7,
+      A: 9,
+      B: 11,
+    };
+
+    let semitone = semitoneByLetter[letter];
+    if (accidental === "#") {
+      semitone += 1;
+    }
+    if (accidental === "b") {
+      semitone -= 1;
+    }
+
+    return (octave + 1) * 12 + semitone;
+  }
+
+  _midiToFrequency(midi) {
+    return noteToFrequency(this._midiToNoteName(midi));
+  }
+
+  _midiToNoteName(midi) {
+    const clamped = Math.round(clamp(midi, 24, 108));
+    const notes = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"];
+    const name = notes[clamped % 12];
+    const octave = Math.floor(clamped / 12) - 1;
+    return `${name}${octave}`;
   }
 }
 
