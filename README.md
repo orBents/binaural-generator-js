@@ -1,94 +1,171 @@
-# BIWAVE
-Aplicacao web de relaxamento e foco com mix de `Binaural + Lo-Fi + Noise`, arquitetura modular e foco em experiencia mobile.
+# BIWAVE / LOFI MAKER
 
-## Visao do Projeto
-O BIWAVE evoluiu de um gerador simples para uma plataforma sonora com:
-- camadas de audio independentes (Binaural, Beat Lo-Fi, Noise)
-- controle de mix com protecao anti-clipping
-- interface mobile-first com feedback visual
-- estado global centralizado para previsibilidade de comportamento
+PWA de foco e relaxamento que combina **binaural beats**, **groove lo-fi generativo** e **harmonia adaptativa** em uma interface mobile-first com fluxo progressivo (`Moods` -> `LOFI MAKER`).
 
-## Novas Metas
-1. Tornar o **Beat** a camada principal por padrao.
-2. Garantir por regra de sistema: **Binaural <= 10% do volume do Beat**.
-3. Centralizar politicas de volume em um unico ponto de configuracao.
-4. Manter arquitetura escalavel (Controller-Engine-UI-State).
-5. Evoluir para presets terapeuticos e sessoes guiadas automatizadas.
+## Sumario Executivo
 
-## Regras de Mix (Atual)
-- O Beat e prioritario na mix.
-- O volume Binaural e automaticamente limitado a 10% do volume do Beat.
-- O `Master Bus` usa `DynamicsCompressorNode` para reduzir risco de clipping.
-- O volume geral e aplicado no estagio final (`masterGain`) sem alterar o balance interno.
+`BIWAVE` resolve um problema comum de produtividade: iniciar um ambiente sonoro de concentracao sem friccao e sem precisar abrir DAW, playlist e app de ruido separadamente.
 
-Implementacao central dessas regras:
-- `src/config/audioConfig.mjs`
-- `src/state.js`
-- `src/core/BinauralEngine.mjs` (enforcement em runtime)
+O produto oferece:
 
-## Arquitetura Recomendada
+- Inicio rapido por humor/objetivo (Moods).
+- Camada binaural sutil para suporte de foco/relaxamento.
+- Beat/harmonia lo-fi com variacao organica e controles musicais.
+- Execucao no navegador como PWA, com comportamento consistente em desktop e mobile.
+
+Resultado pratico: menos carga cognitiva para montar "setup de estudo/trabalho" e mais continuidade de fluxo.
+
+## Arquitetura do Sistema
+
+### Visao Geral
+
 ```text
-/biwave
-├── /assets
-├── /css
-│   ├── theme.css
-│   ├── layout.css
-│   └── components.css
-├── /docs
-├── /src
-│   ├── /config
-│   │   └── audioConfig.mjs
-│   ├── /core
-│   │   ├── BinauralEngine.mjs
-│   │   └── LofiEngine.mjs
-│   ├── /ui
-│   │   └── Visualizer.mjs
-│   ├── /utils
-│   │   └── presets.mjs
-│   ├── app.js
-│   └── state.js
-├── index.html
-├── manifest.json
-└── sw.js
+index.html
+css/
+  theme.css
+src/
+  app.js
+  state.js
+  config/audioConfig.mjs
+  core/
+    BinauralEngine.mjs
+    LofiEngine.mjs
+    BeatEngine.mjs
+    PianoEngine.mjs
+  ui/
+    Visualizer.mjs
+  utils/
+    presets.mjs
 ```
 
-## Papel de Cada Camada
-- `src/app.js`: orquestrador de UI e eventos.
-- `src/state.js`: estado global da aplicacao.
-- `src/config/audioConfig.mjs`: politicas centrais de volume e limites.
-- `src/core/*Engine.mjs`: audio engine sem dependencia direta de DOM.
-- `src/ui/*`: componentes visuais e feedback.
+### Core
 
-## Contratos de Arquitetura
-- `Controller`: nunca cria regra de negocio de audio; apenas encaminha eventos.
-- `State`: e a fonte unica da verdade para modo, volumes, play/pause e aba ativa.
-- `Engine`: recebe estado ja validado e aplica no grafo de audio com rampas suaves.
-- `Config`: concentra constantes globais (rampas, filtros, limites e presets de modo).
+- `BinauralEngine`: gera pares de osciladores L/R, ruido brown, filtros e compressor; controla mix binaural e master.
+- `LofiEngine`: orquestra beat, piano e ruido de vinil; aplica regras musicais de intensidade/groove.
+- `BeatEngine`: sequenciador por steps (8 passos) com swing, shuffle e laid-back.
+- `PianoEngine`: harmonia/modal interchange, voicings, timbre e modulacao (wow/flutter + tape drift).
 
-## Politica de Volume Centralizada
-- Beat: camada principal de referencia.
-- Binaural: `mix <= beatVolume * 0.1` (state + engine).
-- Noise: limitado por `maxNoiseMix`.
-- Master: controle final de saida para evitar saturacao no dispositivo.
+### UI
 
-## Fluxo de Audio
-```text
-Binaural + Noise + Lofi -> Session Gain -> Compressor -> Master Gain -> Analyser -> Destination
-```
+- `index.html`: estrutura das telas (Moods e Maker), controles de modulo e footer "now playing".
+- `css/theme.css`: identidade visual Spotify Dark + responsividade mobile.
+- `Visualizer.mjs`: osciloscopio/pulso reativo ao audio e ao piano.
+
+### State
+
+- `state.js`: estado central + `deepMerge` + subscribers.
+- `audioConfig.mjs` (`applyAudioPolicy`): clamp de ranges, limites de seguranca e normalizacao de escolhas.
+
+### Config
+
+- Parametros de audio, envelopes/rampas, modos lo-fi, escalas e politicas de mix.
+
+## Guia de Recursos (Deep Dive)
+
+### Binaural Engine
+
+Binaural beat = diferenca entre frequencias esquerda/direita:
+
+- Exemplo: `72 Hz` (L) e `80 Hz` (R) -> batimento percebido de `8 Hz`.
+- No app, esse offset e controlado por `Binaural Offset`.
+
+Medidas de seguranca aplicadas:
+
+- Mix binaural limitado dinamicamente a `10%` do volume de beat (`getMaxBinauralMix`).
+- Clamp global de volume, noise mix e offset para evitar overdrive e fadiga.
+
+Objetivo da implementacao: manter binaural como camada de suporte, nunca dominante.
+
+### Rhythm & Groove
+
+O groove nao e "grid 100% reto". O motor usa:
+
+- `shuffle`: desloca offbeats.
+- `laidBack`: atrasos sutis para "recuo" ritmico.
+- `microJitter`: variacao minima aleatoria.
+
+Estilos praticos:
+
+- **Soft**: menor intensidade, menos densidade.
+- **Jazzy/Drive**: mais notas fantasma, ghost hats e kick de apoio.
+
+No codigo, a identidade ritmica e recalculada por intensidade e estado de groove.
+
+### Harmonics & Scales
+
+O bloco harmonico usa modos:
+
+- `dorian`
+- `lydian`
+
+E movimento de progressao:
+
+- `fourths` (quartas)
+- `fifths` (quintas)
+
+Sobre "campos harmonicos":
+
+- Hoje o projeto implementa familias modais (dorian/lydian) com formulas de acorde.
+- "Rap", "Prog" etc. podem ser adicionados como novos perfis em `PianoEngine.modeProfiles`.
+
+Pedal (`pedalEnabled`):
+
+- aumenta sustain/release,
+- cola voicings,
+- deixa a cama harmonica mais cinematica e continua.
+
+### Experiencia UX
+
+Design progressivo:
+
+- Tela `Moods`: entrada rapida, baixa carga cognitiva.
+- Tela `LOFI MAKER`: refinamento por modulo (Binaural, Ritmo, Ruido, Harmonia).
+
+Diretrizes aplicadas:
+
+- Mobile-first com tabs de modulo abaixo de `740px`.
+- Controles tecnicos movidos para `Advanced Lab` (detalhes recolhiveis).
+- Barra fixa de playback para controle constante.
+- PWA com `manifest` + `service worker` (fora de localhost).
+
+## Auditoria Tecnica (Resumo das melhorias aplicadas)
+
+- Estado/playback: ao desligar todos os modulos, o playback e interrompido automaticamente (sem logica orfa).
+- Politica de autoplay: reforco de `AudioContext.resume()` em interacao do usuario e retorno da aba.
+- Integridade de tipo: ajustes de conversao numerica em sliders de timbre/filtro.
+- Config centralizada: compressor do `BinauralEngine` agora usa defaults de `audioConfig`.
+- Refino criativo: easter egg sonoro de fita no piano (micro drift de pitch ligado ao `Tape Hiss`).
+- UX: reducao de poluicao visual movendo controles tecnicos para painel avancado recolhivel.
 
 ## Como Rodar
-1. Abra o projeto no VS Code.
-2. Inicie com Live Server em `index.html`.
-3. Use fones para perceber corretamente o efeito binaural.
 
-## Roadmap Tecnico
-- `v0.9`: presets de mix (`Beat Focus`, `Balanced`, `Meditation`).
-- `v1.0`: sessoes guiadas (tempo, progressao, respiracao).
-- `v1.1`: telemetria local anonima de uso de controles.
-- `v1.2`: testes automatizados de estado e regressao de mix.
-- `v1.3`: `dispose()` completo nas engines e limpeza de timers/nodes.
-- `v1.4`: hard limiter apos compressor para zero clipping em cenario extremo.
+Como o projeto usa ES Modules, rode em servidor local:
 
-## Notas
-- O projeto prioriza suavidade auditiva e transicoes sem cliques.
-- Alteracoes de volume/filtros devem usar rampas (`linearRampToValueAtTime` ou `exponentialRampToValueAtTime`).
+```bash
+python -m http.server 8080
+```
+
+Abra em seguida:
+
+```text
+http://localhost:8080
+```
+
+## Como Contribuir
+
+1. Faca fork e crie uma branch (`feature/minha-melhoria`).
+2. Mantenha padrao modular (`src/core`, `src/ui`, `src/state`, `src/config`).
+3. Priorize mudancas pequenas e testaveis por modulo.
+4. Para audio: valide clipping, volume relativo e transicoes de rampa.
+5. Para UX: valide fluxo mobile e navegacao entre `Moods` e `Maker`.
+6. Abra PR com:
+   - objetivo da mudanca,
+   - impacto sonoro/UX,
+   - passos de reproducao.
+
+## Roadmap Sugerido
+
+- Novos perfis harmonicos (ex.: rap/prog/chillhop) em `modeProfiles`.
+- Presets salvos por usuario (localStorage).
+- Modo "session timer" com fades automaticos.
+- Testes de regressao de estado/playback e smoke test de audio nodes.

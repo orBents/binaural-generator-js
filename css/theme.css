@@ -213,6 +213,32 @@ body[data-view="control"] .view-control { opacity: 1; pointer-events: auto; tran
   margin-bottom: 2px;
 }
 
+.advanced-panel {
+  margin-top: 6px;
+  border: 1px solid #313131;
+  border-radius: 12px;
+  padding: 8px;
+  background: #151515;
+}
+
+.advanced-panel summary {
+  cursor: pointer;
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  list-style: none;
+}
+
+.advanced-panel summary::-webkit-details-marker {
+  display: none;
+}
+
+.advanced-panel[open] summary {
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
 select {
   width: 100%;
   min-height: 40px;
@@ -450,5 +476,9 @@ body[data-playing="true"] .sine-wave span { animation-play-state: running; }
     max-height: none;
     overflow: visible;
     padding-bottom: 12px;
+  }
+
+  .advanced-panel {
+    margin-top: 10px;
   }
 }

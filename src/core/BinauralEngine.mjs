@@ -47,9 +47,9 @@ class BinauralEngine {
     this.sessionGain.gain.value = this.minGain;
     this.masterGain.gain.value = this.masterVolumeTarget;
 
-    this.compressor.threshold.value = -20;
+    this.compressor.threshold.value = COMPRESSOR_DEFAULTS.threshold;
     this.compressor.knee.value = COMPRESSOR_DEFAULTS.knee;
-    this.compressor.ratio.value = 8;
+    this.compressor.ratio.value = COMPRESSOR_DEFAULTS.ratio;
     this.compressor.attack.value = COMPRESSOR_DEFAULTS.attack;
     this.compressor.release.value = COMPRESSOR_DEFAULTS.release;
 
@@ -161,9 +161,11 @@ class BinauralEngine {
     this._rampGain(this.sessionGain.gain, 0, Math.min(AUDIO_RAMP.normal, safeFade));
     this._rampGain(this.masterGain.gain, 0, safeFade);
 
-    window.setTimeout(async () => {
+    window.setTimeout(() => {
       if (this.audioContext.state === "running" && !this.isRunning) {
-        await this.audioContext.suspend();
+        this.audioContext.suspend().catch(() => {
+          // noop
+        });
       }
     }, (safeFade + 0.08) * 1000);
   }

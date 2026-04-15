@@ -96,6 +96,11 @@ function getModuleState(name) {
   return modules[name] !== false;
 }
 
+function hasAnyEnabledModule(state) {
+  const modules = state.ui.modules || {};
+  return Object.values(modules).some((enabled) => enabled !== false);
+}
+
 function getFirstEnabledModule(state) {
   const order = ["binaural", "rhythm", "noise", "harmonics"];
   const modules = state.ui.modules || {};
@@ -286,6 +291,9 @@ async function ensurePlaying() {
   if (state.playback.isPlaying) {
     return;
   }
+  if (!hasAnyEnabledModule(state)) {
+    return;
+  }
 
   await engine.start();
   await lofiEngine.start();
@@ -294,6 +302,27 @@ async function ensurePlaying() {
       isPlaying: true,
     },
   });
+}
+
+async function stopPlayback(fade = 0.35) {
+  lofiEngine.stop();
+  await engine.stopAll(fade);
+  appState.setState({
+    playback: {
+      isPlaying: false,
+    },
+  });
+}
+
+async function resumeAudioContextIfNeeded() {
+  const context = engine.getAudioContext();
+  if (context.state === "suspended") {
+    try {
+      await context.resume();
+    } catch (error) {
+      console.warn("Nao foi possivel retomar AudioContext:", error);
+    }
+  }
 }
 
 function patchModule(name, enabled) {
@@ -317,7 +346,14 @@ function patchModule(name, enabled) {
     },
   });
 
-  applyAudioState(appState.getState());
+  const nextState = appState.getState();
+  applyAudioState(nextState);
+
+  if (!hasAnyEnabledModule(nextState) && nextState.playback.isPlaying) {
+    stopPlayback(0.2).catch((error) => {
+      console.error("Falha ao interromper playback com modulos desligados:", error);
+    });
+  }
 }
 
 function applyMoodPreset(mood) {
@@ -327,6 +363,13 @@ function applyMoodPreset(mood) {
   appState.setState({
     ui: {
       mood,
+      activeModule: "binaural",
+      modules: {
+        binaural: true,
+        rhythm: true,
+        harmonics: true,
+        noise: true,
+      },
     },
     binaural: {
       vibe: moodPreset.vibe,
@@ -397,6 +440,24 @@ appState.subscribe((state) => {
 });
 
 syncRangeReadouts();
+
+window.addEventListener("pointerdown", () => {
+  resumeAudioContextIfNeeded();
+}, { passive: true });
+
+window.addEventListener("touchstart", () => {
+  resumeAudioContextIfNeeded();
+}, { passive: true });
+
+window.addEventListener("keydown", () => {
+  resumeAudioContextIfNeeded();
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    resumeAudioContextIfNeeded();
+  }
+});
 
 openMakerBtn.addEventListener("click", () => {
   setView("control");
@@ -558,17 +619,17 @@ wowFlutterControl.addEventListener("input", (event) => {
 
 resonanceControl.addEventListener("input", (event) => {
   appState.setState({ lofi: { resonance: Number(event.target.value) } });
-  lofiEngine.setResonance(event.target.value);
+  lofiEngine.setResonance(Number(event.target.value));
 });
 
 warmthControl.addEventListener("input", (event) => {
   appState.setState({ lofi: { warmth: Number(event.target.value) } });
-  lofiEngine.setWarmth(event.target.value);
+  lofiEngine.setWarmth(Number(event.target.value));
 });
 
 spaceControl.addEventListener("input", (event) => {
   appState.setState({ lofi: { space: Number(event.target.value) } });
-  lofiEngine.setSpace(event.target.value);
+  lofiEngine.setSpace(Number(event.target.value));
 });
 
 suboctaveToggle.addEventListener("change", (event) => {
@@ -598,20 +659,13 @@ playBtn.addEventListener("click", async (event) => {
       return;
     }
 
-    lofiEngine.stop();
-    await engine.stopAll(0.35);
-    appState.setState({
-      playback: {
-        isPlaying: false,
-      },
-    });
+    await stopPlayback(0.35);
   } catch (error) {
     console.error("Falha ao alternar reproducao:", error);
   }
 });
 
 window.addEventListener("beforeunload", async () => {
-  lofiEngine.stop();
-  await engine.stopAll(0.2);
+  await stopPlayback(0.2);
   visualizer.stop();
 });

@@ -48,6 +48,7 @@ class LofiEngine {
       progressionMotion: options.progressionMotion ?? "fourths",
       wowFlutter: options.wowFlutter ?? 0.35,
       toneCutoff: options.toneCutoff ?? 1200,
+      tapeWear: options.tapeHiss ?? 0.3,
     });
 
     this.intensity = clamp(options.intensity ?? 0.62, 0, 1);
@@ -283,6 +284,7 @@ class LofiEngine {
 
   setTapeHiss(value) {
     this.tapeHiss = clamp(Number(value), 0, 1);
+    this.pianoEngine.setTapeWear(this.tapeHiss);
     this._applyVinylBase(AUDIO_RAMP.normal);
   }
 

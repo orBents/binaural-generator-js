@@ -1,4 +1,4 @@
-import { AUDIO_RAMP, GENERATIVE_CONFIG, applyFade, clamp, noteToFrequency } from "../config/audioConfig.mjs";
+import { AUDIO_RAMP, GENERATIVE_CONFIG, applyFade, clamp } from "../config/audioConfig.mjs";
 
 class PianoEngine {
   constructor(audioContext, destinationNode, options = {}) {
@@ -47,6 +47,7 @@ class PianoEngine {
     this.warmth = 0.28;
     this.space = 0.35;
     this.wowFlutter = clamp(options.wowFlutter ?? 0.35, 0, 1);
+    this.tapeWear = clamp(options.tapeWear ?? 0.22, 0, 1);
     this.onNote = null;
 
     this.attackNoiseBuffer = this._createWhiteNoiseBuffer(0.08);
@@ -93,6 +94,7 @@ class PianoEngine {
     this.setResonance(options.resonance ?? this.resonance);
     this.setWarmth(options.warmth ?? this.warmth);
     this.setSpace(options.space ?? this.space);
+    this.setTapeWear(options.tapeWear ?? this.tapeWear);
   }
 
   setProbability(value) {
@@ -195,6 +197,10 @@ class PianoEngine {
 
   setWowFlutter(value) {
     this.wowFlutter = clamp(Number(value), 0, 1);
+  }
+
+  setTapeWear(value) {
+    this.tapeWear = clamp(Number(value), 0, 1);
   }
 
   _applySpaceByTimbre() {
@@ -506,9 +512,11 @@ class PianoEngine {
 
     osc.frequency.setValueAtTime(config.frequency, config.start);
     osc.detune.setValueAtTime(config.detuneCents, config.start);
+    const tapeDrift = (Math.random() * 2 - 1) * (1.2 + this.tapeWear * 8.5);
+    osc.detune.linearRampToValueAtTime(config.detuneCents + tapeDrift, config.endTime);
     lfo.type = "sine";
     const wowRate = 0.12 + this.wowFlutter * 2.2;
-    const wowDepthCents = 1.2 + this.wowFlutter * 30;
+    const wowDepthCents = 0.9 + this.wowFlutter * 24 + this.tapeWear * 3.2;
     lfo.frequency.setValueAtTime(wowRate, config.start);
     lfoGain.gain.setValueAtTime(wowDepthCents, config.start);
     gain.gain.setValueAtTime(Math.max(this.minGain, config.gain), config.start);
@@ -730,15 +738,8 @@ class PianoEngine {
   }
 
   _midiToFrequency(midi) {
-    return noteToFrequency(this._midiToNoteName(midi));
-  }
-
-  _midiToNoteName(midi) {
-    const clamped = Math.round(clamp(midi, 24, 108));
-    const notes = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"];
-    const name = notes[clamped % 12];
-    const octave = Math.floor(clamped / 12) - 1;
-    return `${name}${octave}`;
+    const clamped = clamp(Number(midi), 24, 108);
+    return 440 * Math.pow(2, (clamped - 69) / 12);
   }
 }
 
