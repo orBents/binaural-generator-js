@@ -25,7 +25,13 @@ class BeatEngine {
 
     this.bpm = options.bpm ?? GENERATIVE_CONFIG.bpm;
     this.swing = options.swing ?? GENERATIVE_CONFIG.beat.swing;
+    this.shuffle = clamp(options.shuffle ?? 0.54, 0.5, 0.66);
+    this.laidBack = clamp(options.laidBack ?? 0.004, 0, 0.02);
     this.grooveEnabled = false;
+    this.kickBody = clamp(options.kickBody ?? 0.6, 0, 1);
+    this.snareClap = clamp(options.snareClap ?? 0.25, 0, 1);
+    this.hatMotion = options.hatMotion === "eighth" ? "eighth" : "sixteenth";
+    this.bassMode = ["off", "warm", "heavy"].includes(options.bassMode) ? options.bassMode : "warm";
     this.stepIndex = 0;
     this.nextStepTime = 0;
     this.schedulerInterval = null;
@@ -93,11 +99,35 @@ class BeatEngine {
   }
 
   setSwing(amount) {
-    this.swing = clamp(Number(amount), 0, 0.06);
+    this.swing = clamp(Number(amount), 0, 0.08);
+  }
+
+  setShuffle(amount) {
+    this.shuffle = clamp(Number(amount), 0.5, 0.66);
+  }
+
+  setLaidBack(amount) {
+    this.laidBack = clamp(Number(amount), 0, 0.02);
   }
 
   setGrooveEnabled(enabled) {
     this.grooveEnabled = Boolean(enabled);
+  }
+
+  setKickBody(value) {
+    this.kickBody = clamp(Number(value), 0, 1);
+  }
+
+  setSnareClap(value) {
+    this.snareClap = clamp(Number(value), 0, 1);
+  }
+
+  setHatMotion(value) {
+    this.hatMotion = value === "eighth" ? "eighth" : "sixteenth";
+  }
+
+  setBassMode(mode) {
+    this.bassMode = ["off", "warm", "heavy"].includes(mode) ? mode : "warm";
   }
 
   setLowPassHz(value) {
@@ -131,7 +161,7 @@ class BeatEngine {
   }
 
   _scheduleLoop() {
-    const ahead = 0.14;
+    const ahead = 0.16;
     while (this.nextStepTime < this.audioContext.currentTime + ahead) {
       this._scheduleStep(this.stepIndex, this.nextStepTime);
       this._advanceStep();
@@ -143,28 +173,47 @@ class BeatEngine {
     const snareHit = this.patterns.snare[step] === 1;
     const hatHit = this.patterns.hat[step] === 1;
 
-    const groovePull = this.grooveEnabled && step % 2 === 1 ? 0.008 : 0;
-    const groovePush = this.grooveEnabled && step % 4 === 2 ? -0.004 : 0;
-    const swungTime = time + groovePull + groovePush;
+    const stepDuration = (60 / this.bpm) / 2;
+    const isOffBeat = step % 2 === 1;
+    const shuffleOffset = isOffBeat ? (this.shuffle - 0.5) * stepDuration : 0;
+    const laidBackOffset = this.grooveEnabled ? this.laidBack : 0;
+    const microJitter = this.grooveEnabled ? (Math.random() * 2 - 1) * 0.0032 : 0;
+    const swungTime = time + shuffleOffset + laidBackOffset + microJitter;
 
     if (kickHit) {
-      this._trigger(this.kickBuffer, swungTime, this.grooveEnabled ? 0.92 : 0.88, 0.36);
+      const kickWeight = 0.56 + this.kickBody * 0.26;
+      const kickVel = this.grooveEnabled ? (step === 0 ? kickWeight + 0.04 : kickWeight - 0.08) : kickWeight;
+      this._trigger(this.kickBuffer, swungTime, kickVel, 0.44 + this.kickBody * 0.18);
+      this._triggerKickBass(swungTime, step === 0);
     }
 
     if (snareHit) {
-      this._trigger(this.snareBuffer, swungTime, this.grooveEnabled ? 0.58 : 0.5, 0.24);
+      const snareTime = swungTime + (this.grooveEnabled ? 0.003 : 0);
+      const snareVelocity = this.grooveEnabled ? 0.42 : 0.36;
+      this._trigger(this.snareBuffer, snareTime, snareVelocity, 0.24);
+      if (this.snareClap > 0.02) {
+        const clapDelay = 0.006 + this.snareClap * 0.009;
+        const clapVelocity = snareVelocity * (0.22 + this.snareClap * 0.5);
+        this._trigger(this.snareBuffer, snareTime + clapDelay, clapVelocity, 0.1);
+      }
     }
 
     if (hatHit) {
-      const hatTime = step % 2 === 1 ? swungTime + this.swing : swungTime;
+      const hatTime = isOffBeat ? swungTime + this.swing : swungTime;
       const hatVelocity = this.grooveEnabled
-        ? (step % 2 === 1 ? 0.31 : 0.2)
-        : 0.22;
-      this._trigger(this.hatBuffer, hatTime, hatVelocity, 0.1);
+        ? (isOffBeat ? 0.22 : 0.14)
+        : 0.16;
+      this._trigger(this.hatBuffer, hatTime, hatVelocity, 0.12);
+
+      if (this.hatMotion === "sixteenth" && Math.random() > 0.22) {
+        const ghostOffset = stepDuration * (0.14 + Math.random() * 0.08);
+        const ghostVel = hatVelocity * (0.45 + Math.random() * 0.25);
+        this._trigger(this.hatBuffer, hatTime + ghostOffset, ghostVel, 0.08);
+      }
     }
 
     if (this.onStep) {
-      this.onStep({ step, time, kickHit, snareHit, hatHit });
+      this.onStep({ step, time: swungTime, kickHit, snareHit, hatHit });
     }
   }
 
@@ -211,19 +260,46 @@ class BeatEngine {
   }
 
   _createKickBuffer() {
-    const duration = 0.48;
+    const duration = 0.64;
     const length = Math.floor(this.audioContext.sampleRate * duration);
     const buffer = this.audioContext.createBuffer(1, length, this.audioContext.sampleRate);
     const data = buffer.getChannelData(0);
 
     for (let i = 0; i < length; i += 1) {
       const t = i / this.audioContext.sampleRate;
-      const sweep = 96 * Math.exp(-t * 14) + 42;
-      const envelope = Math.exp(-t * 10.5);
-      data[i] = Math.sin(2 * Math.PI * sweep * t) * envelope * 1.6;
+      const sweep = 92 * Math.exp(-t * 8.8) + 46;
+      const envelope = Math.exp(-t * 8.2);
+      const softClip = Math.tanh(Math.sin(2 * Math.PI * sweep * t) * 1.4);
+      data[i] = softClip * envelope * 1.2;
     }
 
     return buffer;
+  }
+
+  _triggerKickBass(time, isDownBeat) {
+    if (this.bassMode === "off") {
+      return;
+    }
+
+    const depth = this.bassMode === "heavy" ? 1 : 0.58;
+    const freq = this.bassMode === "heavy" ? 47 : 58;
+    const dur = this.bassMode === "heavy" ? 0.22 : 0.15;
+    const gainAmount = (isDownBeat ? 0.12 : 0.08) * depth;
+
+    const osc = this.audioContext.createOscillator();
+    const gain = this.audioContext.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(freq, time);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(28, freq * 0.62), time + dur);
+
+    gain.gain.setValueAtTime(this.minGain, time);
+    gain.gain.exponentialRampToValueAtTime(gainAmount, time + 0.008);
+    gain.gain.exponentialRampToValueAtTime(this.minGain, time + dur);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(time);
+    osc.stop(time + dur + 0.03);
   }
 
   _createSnareBuffer() {
@@ -243,14 +319,16 @@ class BeatEngine {
   }
 
   _createHatBuffer() {
-    const duration = 0.09;
+    const duration = 0.11;
     const length = Math.floor(this.audioContext.sampleRate * duration);
     const buffer = this.audioContext.createBuffer(1, length, this.audioContext.sampleRate);
     const data = buffer.getChannelData(0);
 
     for (let i = 0; i < length; i += 1) {
       const t = i / this.audioContext.sampleRate;
-      data[i] = (Math.random() * 2 - 1) * Math.exp(-t * 42);
+      const shimmer = Math.sin(2 * Math.PI * 6900 * t) * 0.18;
+      const noise = (Math.random() * 2 - 1) * Math.exp(-t * 34);
+      data[i] = (noise + shimmer) * Math.exp(-t * 26) * 0.68;
     }
 
     return buffer;
@@ -258,4 +336,3 @@ class BeatEngine {
 }
 
 export { BeatEngine };
-

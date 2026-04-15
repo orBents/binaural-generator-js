@@ -1,4 +1,4 @@
-import { getPreset } from "../utils/presets.mjs";
+import { getVibe } from "../utils/presets.mjs";
 import {
   AUDIO_LIMITS,
   AUDIO_RAMP,
@@ -47,9 +47,9 @@ class BinauralEngine {
     this.sessionGain.gain.value = this.minGain;
     this.masterGain.gain.value = this.masterVolumeTarget;
 
-    this.compressor.threshold.value = COMPRESSOR_DEFAULTS.threshold;
+    this.compressor.threshold.value = -20;
     this.compressor.knee.value = COMPRESSOR_DEFAULTS.knee;
-    this.compressor.ratio.value = COMPRESSOR_DEFAULTS.ratio;
+    this.compressor.ratio.value = 8;
     this.compressor.attack.value = COMPRESSOR_DEFAULTS.attack;
     this.compressor.release.value = COMPRESSOR_DEFAULTS.release;
 
@@ -65,7 +65,9 @@ class BinauralEngine {
 
     this.tracks = new Map();
     this.currentWaveType = "sine";
-    this.currentPresetName = "Alpha";
+    this.currentVibeName = "Alpha";
+    this.currentBaseFrequency = 72;
+    this.currentOffsetHz = 8;
 
     this.sweepTimeout = null;
     this.sweepActive = false;
@@ -83,13 +85,13 @@ class BinauralEngine {
     this.lfoGain = null;
 
     this.createTrack("main", {
-      leftFrequency: 72,
-      rightFrequency: 80,
+      leftFrequency: 68,
+      rightFrequency: 76,
       gain: 1,
       waveType: "sine",
     });
 
-    this.setPreset(this.currentPresetName, 0);
+    this.setVibe(this.currentVibeName, 0);
   }
 
   createTrack(name, config = {}) {
@@ -166,15 +168,26 @@ class BinauralEngine {
     }, (safeFade + 0.08) * 1000);
   }
 
-  setPreset(presetName, transitionSeconds = 2.5) {
-    const preset = getPreset(presetName);
-    this.currentPresetName = presetName;
+  setVibe(vibeName, transitionSeconds = 2.5) {
+    const vibe = getVibe(vibeName);
+    this.currentVibeName = vibeName;
+    this.currentBaseFrequency = this._sanitizeFrequency(vibe.baseFrequency);
 
-    const left = this._sanitizeFrequency(preset.baseFrequency);
-    const right = this._sanitizeFrequency(preset.baseFrequency + preset.beatFrequency);
+    if (!Number.isFinite(this.currentOffsetHz) || this.currentOffsetHz <= 0) {
+      this.currentOffsetHz = this._sanitizeOffset(vibe.beatFrequency);
+    }
 
-    this.setTrackFrequencies("main", left, right, transitionSeconds);
+    this._setMainByBaseAndOffset(this.currentBaseFrequency, this.currentOffsetHz, transitionSeconds);
     this._applyToneShaping(this.currentWaveType);
+  }
+
+  setPreset(presetName, transitionSeconds = 2.5) {
+    this.setVibe(presetName, transitionSeconds);
+  }
+
+  setBinauralOffset(offsetHz, rampSeconds = 0.9) {
+    this.currentOffsetHz = this._sanitizeOffset(offsetHz);
+    this._setMainByBaseAndOffset(this.currentBaseFrequency, this.currentOffsetHz, rampSeconds);
   }
 
   setTrackFrequencies(name, leftFrequency, rightFrequency, rampSeconds = 1.8) {
@@ -261,6 +274,20 @@ class BinauralEngine {
 
   getAtmosphereInputNode() {
     return this.atmosphereInput;
+  }
+
+  _setMainByBaseAndOffset(baseFrequency, offsetHz, rampSeconds) {
+    const base = this._sanitizeFrequency(baseFrequency);
+    const offset = this._sanitizeOffset(offsetHz);
+
+    const half = offset / 2;
+    const left = this._sanitizeFrequency(base - half);
+    const right = this._sanitizeFrequency(base + half);
+
+    this.currentBaseFrequency = (left + right) / 2;
+    this.currentOffsetHz = right - left;
+
+    this.setTrackFrequencies("main", left, right, rampSeconds);
   }
 
   _ensureTrackSourcesStarted() {
@@ -392,6 +419,14 @@ class BinauralEngine {
       throw new Error(`Tipo de onda invalido: ${type}`);
     }
     return type;
+  }
+
+  _sanitizeOffset(value) {
+    const safe = Number(value);
+    if (Number.isNaN(safe) || safe <= 0) {
+      return 8;
+    }
+    return this._clamp(safe, 0.5, 40);
   }
 
   _sanitizeFrequency(value) {

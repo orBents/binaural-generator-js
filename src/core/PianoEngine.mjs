@@ -8,6 +8,8 @@ class PianoEngine {
 
     this.outputGain = this.audioContext.createGain();
     this.outputGain.gain.value = this.minGain;
+    this.colorFilter = this.audioContext.createBiquadFilter();
+    this.warmthShaper = this.audioContext.createWaveShaper();
 
     this.reverbSend = this.audioContext.createGain();
     this.reverbSend.gain.value = 0.18;
@@ -18,47 +20,79 @@ class PianoEngine {
     this.reverbReturnGain = this.audioContext.createGain();
     this.reverbReturnGain.gain.value = 0.24;
 
-    this.outputGain.connect(this.destinationNode);
-    this.outputGain.connect(this.reverbSend);
+    this.colorFilter.type = "lowpass";
+    this.colorFilter.frequency.value = 1900;
+    this.colorFilter.Q.value = 1.1;
+
+    this.outputGain.connect(this.colorFilter);
+    this.colorFilter.connect(this.warmthShaper);
+    this.warmthShaper.connect(this.destinationNode);
+    this.warmthShaper.connect(this.reverbSend);
     this.reverbSend.connect(this.reverb);
     this.reverb.connect(this.reverbReturnGain);
     this.reverbReturnGain.connect(this.destinationNode);
 
     this.scales = options.scales || GENERATIVE_CONFIG.scales;
-    this.scaleName = options.scaleName || "dreamy";
-    this.activeScale = this.scales[this.scaleName] || this.scales.dreamy;
+    this.scaleName = options.scaleName || "dorian";
+    this.activeScale = this.scales[this.scaleName] || this.scales.dorian;
+    this.bpm = clamp(options.bpm ?? GENERATIVE_CONFIG.bpm, 48, 120);
 
     this.probability = clamp(options.probability ?? GENERATIVE_CONFIG.piano.probability, 0, 1);
     this.humanization = clamp(options.humanization ?? GENERATIVE_CONFIG.piano.humanization, 0, 0.06);
     this.release = clamp(options.release ?? GENERATIVE_CONFIG.piano.release, 0.4, 4);
-    this.timbre = "classico";
+    this.timbre = "rhodes";
+    this.pedalEnabled = false;
+    this.subOctaveEnabled = false;
+    this.resonance = 0.45;
+    this.warmth = 0.28;
+    this.space = 0.35;
+    this.wowFlutter = clamp(options.wowFlutter ?? 0.35, 0, 1);
     this.onNote = null;
 
     this.attackNoiseBuffer = this._createWhiteNoiseBuffer(0.08);
     this.periodicWaves = {
-      classico: this._createPeriodicWave([1, 0.62, 0.34, 0.22, 0.12, 0.08, 0.05]),
-      nylon: this._createPeriodicWave([1, 0.52, 0.28, 0.12, 0.06, 0.04]),
-      synth: this._createPeriodicWave([1, 0.78, 0.64, 0.49, 0.32, 0.2, 0.11]),
+      rhodes: this._createPeriodicWave([1, 0.58, 0.3, 0.2, 0.12, 0.06, 0.04]),
+      chords: this._createPeriodicWave([1, 0.66, 0.36, 0.2, 0.1, 0.06]),
     };
 
     this.stepsPerBar = 8;
     this.currentBar = -1;
-    this.currentChordKey = "i9";
+    this.currentChordKey = "i";
     this.lastPhraseDirection = 1;
+    this.harmonicMode = "dorian";
+    this.progressionMotion = "fourths";
+    this.activeVoices = new Set();
 
-    // Jazz-inspired minor-loop with tonic resolution and ii?-V motion.
-    this.progression = [
-      "i9",
-      "iv9",
-      "bVII13",
-      "IIImaj7",
-      "iiHalfDim7",
-      "V7b9",
-      "i9",
-      "V7sus4",
-    ];
+    this.modeProfiles = {
+      dorian: {
+        progression: ["i", "iv", "bVII", "i", "v", "iv", "bVII", "i"],
+        formulas: {
+          i: [0, 3, 7, 10, 14],
+          iv: [5, 8, 12, 15, 19],
+          v: [7, 10, 14, 17],
+          bVII: [10, 14, 17, 21],
+        },
+      },
+      lydian: {
+        progression: ["I", "II", "V", "I", "VII", "II", "V", "I"],
+        formulas: {
+          I: [0, 4, 7, 11, 14],
+          II: [2, 6, 9, 13],
+          V: [7, 11, 14, 18],
+          VII: [11, 14, 18, 21],
+        },
+      },
+    };
+    this.progression = this.modeProfiles.dorian.progression;
 
     this.setTimbre(options.timbre ?? GENERATIVE_CONFIG.piano.timbre);
+    this.setHarmonicMode(options.harmonicMode ?? "dorian");
+    this.setProgressionMotion(options.progressionMotion ?? "fourths");
+    this.setToneCutoff(options.toneCutoff ?? 1200);
+    this.setWowFlutter(options.wowFlutter ?? this.wowFlutter);
+    this.setResonance(options.resonance ?? this.resonance);
+    this.setWarmth(options.warmth ?? this.warmth);
+    this.setSpace(options.space ?? this.space);
   }
 
   setProbability(value) {
@@ -73,9 +107,16 @@ class PianoEngine {
     }
   }
 
+  setBpm(value) {
+    this.bpm = clamp(Number(value), 48, 120);
+  }
+
   setOutputLevel(level, rampSeconds = AUDIO_RAMP.normal) {
     const target = clamp(level, this.minGain, 1);
     applyFade(this.audioContext, this.outputGain.gain, target, rampSeconds, true, this.minGain);
+    if (target <= this.minGain * 1.5) {
+      this.stopAllVoices();
+    }
   }
 
   setOnNote(callback) {
@@ -83,9 +124,137 @@ class PianoEngine {
   }
 
   setTimbre(value) {
-    const normalized = value === "digital" ? "nylon" : value;
-    const allowed = ["classico", "nylon", "8bits", "synth"];
-    this.timbre = allowed.includes(normalized) ? normalized : "classico";
+    const legacyMap = {
+      classico: "rhodes",
+      nylon: "flute",
+      "8bits": "blend",
+      synth: "blend",
+      digital: "blend",
+      chords: "blend",
+      lead: "blend",
+      bass: "rhodes",
+    };
+    const normalized = legacyMap[value] || value;
+    const allowed = ["rhodes", "flute", "blend"];
+    this.timbre = allowed.includes(normalized) ? normalized : "rhodes";
+    this._applySpaceByTimbre();
+  }
+
+  setPedalEnabled(enabled) {
+    this.pedalEnabled = Boolean(enabled);
+  }
+
+  setResonance(value) {
+    this.resonance = clamp(Number(value), 0, 1);
+    const now = this.audioContext.currentTime;
+    const freq = 1200 + this.resonance * 3200;
+    const q = 0.8 + this.resonance * 6.8;
+    this.colorFilter.frequency.cancelScheduledValues(now);
+    this.colorFilter.Q.cancelScheduledValues(now);
+    this.colorFilter.frequency.setValueAtTime(this.colorFilter.frequency.value, now);
+    this.colorFilter.Q.setValueAtTime(this.colorFilter.Q.value, now);
+    this.colorFilter.frequency.linearRampToValueAtTime(freq, now + 0.2);
+    this.colorFilter.Q.linearRampToValueAtTime(q, now + 0.2);
+  }
+
+  setWarmth(value) {
+    this.warmth = clamp(Number(value), 0, 1);
+    this.warmthShaper.curve = this._createWarmthCurve(this.warmth);
+    this.warmthShaper.oversample = "4x";
+  }
+
+  setSpace(value) {
+    this.space = clamp(Number(value), 0, 1);
+    this._applySpaceByTimbre();
+  }
+
+  setSubOctaveEnabled(enabled) {
+    this.subOctaveEnabled = Boolean(enabled);
+  }
+
+  setHarmonicMode(mode) {
+    const safe = ["dorian", "lydian"].includes(mode) ? mode : "dorian";
+    this.harmonicMode = safe;
+    this.setScale(safe);
+    this.progression = this.modeProfiles[safe].progression;
+    this.currentBar = -1;
+  }
+
+  setProgressionMotion(motion) {
+    this.progressionMotion = motion === "fifths" ? "fifths" : "fourths";
+    this.currentBar = -1;
+  }
+
+  setToneCutoff(value) {
+    const cutoff = clamp(Number(value), 800, 2600);
+    const now = this.audioContext.currentTime;
+    this.colorFilter.frequency.cancelScheduledValues(now);
+    this.colorFilter.frequency.setValueAtTime(this.colorFilter.frequency.value, now);
+    this.colorFilter.frequency.linearRampToValueAtTime(cutoff, now + 0.18);
+  }
+
+  setWowFlutter(value) {
+    this.wowFlutter = clamp(Number(value), 0, 1);
+  }
+
+  _applySpaceByTimbre() {
+    const base = {
+      rhodes: { send: 0.1, ret: 0.14 },
+      flute: { send: 0.16, ret: 0.2 },
+      blend: { send: 0.15, ret: 0.19 },
+    }[this.timbre] || { send: 0.1, ret: 0.14 };
+
+    const depth = 0.35 + this.space * 1.35;
+    this.reverbSend.gain.value = clamp(base.send * depth, 0.02, 0.6);
+    this.reverbReturnGain.gain.value = clamp(base.ret * depth, 0.02, 0.65);
+  }
+
+  stopAllVoices() {
+    this.activeVoices.forEach((voice) => {
+      try {
+        voice.stop(this.audioContext.currentTime + 0.01);
+      } catch (_error) {
+        // noop
+      }
+    });
+    this.activeVoices.clear();
+  }
+
+  _getStepDuration() {
+    return (60 / this.bpm) / 2;
+  }
+
+  _getProgressionRootOffset() {
+    const cycle = this.progressionMotion === "fifths" ? 7 : 5;
+    return (this.currentBar * cycle) % 12;
+  }
+
+  _getSyncopationOffset(step) {
+    const stepDuration = this._getStepDuration();
+    const swingBase = 0.018 + this.wowFlutter * 0.016;
+    if (step === 0) {
+      return stepDuration * (0.2 + Math.random() * 0.18);
+    }
+    if (step !== null && step % 2 === 1) {
+      return swingBase + Math.random() * 0.006;
+    }
+    return (Math.random() * 2 - 1) * 0.004;
+  }
+
+  _computeDurationScale() {
+    return clamp((60 / this.bpm) / 0.58, 0.7, 1.5);
+  }
+
+  _isStrongStep(step) {
+    return step === null ? Math.random() > 0.56 : (step === 0 || step === 3 || step === 6);
+  }
+
+  _shouldPlayStrongVoicing(step) {
+    return step === 3 || step === 6 || (step === 0 && Math.random() > 0.72);
+  }
+
+  _getDensityBoost(step) {
+    return this._isStrongStep(step) ? 0.2 : 0;
   }
 
   playStep(input) {
@@ -105,24 +274,27 @@ class PianoEngine {
       this.currentChordKey = this.progression[this.currentBar % this.progression.length];
     }
 
-    const strongStep = step === null ? Math.random() > 0.5 : (step === 0 || step === 4);
-    const densityBoost = strongStep ? 0.22 : 0;
+    const strongStep = this._isStrongStep(step);
+    const densityBoost = this._getDensityBoost(step);
 
     if (Math.random() > clamp(this.probability + densityBoost, 0, 0.94)) {
       return;
     }
 
     const harmonicContext = this._buildHarmonicContext();
+    const syncopationOffset = this._getSyncopationOffset(step);
+    const durationScale = this._computeDurationScale();
+    const startTime = time + syncopationOffset;
 
-    if (strongStep) {
-      this._playChordVoicing(time, harmonicContext, step);
+    if (strongStep && this._shouldPlayStrongVoicing(step)) {
+      this._playChordVoicing(startTime, harmonicContext, step, durationScale);
       return;
     }
 
-    this._playMelodicTone(time, harmonicContext, step);
+    this._playMelodicTone(startTime, harmonicContext, durationScale);
   }
 
-  _playChordVoicing(time, harmonicContext, step) {
+  _playChordVoicing(time, harmonicContext, step, durationScale) {
     const notes = harmonicContext.chordMidis;
     if (notes.length < 3) {
       return;
@@ -142,15 +314,15 @@ class PianoEngine {
       voicing.push((notes[1] ?? notes[0]) + 12);
     }
 
-    const velocity = step === 0 ? 0.96 : 0.82;
+    const velocity = step === 0 ? 0.84 : 0.74;
 
     voicing.forEach((midi, idx) => {
       const stagger = idx * 0.012;
-      this._triggerNoteByFrequency(this._midiToFrequency(midi), start + stagger, velocity, 1.2);
+      this._triggerNoteByFrequency(this._midiToFrequency(midi), start + stagger, velocity, 0.95 * durationScale);
     });
   }
 
-  _playMelodicTone(time, harmonicContext) {
+  _playMelodicTone(time, harmonicContext, durationScale) {
     const start = Math.max(
       this.audioContext.currentTime,
       time + (Math.random() * 2 - 1) * this.humanization
@@ -180,14 +352,14 @@ class PianoEngine {
 
     const midi = sorted[index];
     const velocity = 0.64 + Math.random() * 0.2;
-    this._triggerNoteByFrequency(this._midiToFrequency(midi), start, velocity, 0.86);
+    this._triggerNoteByFrequency(this._midiToFrequency(midi), start, velocity, 0.72 * durationScale);
   }
 
   _buildHarmonicContext() {
-    const tonicMidi = this._noteToMidi(this.activeScale[0] || "C3");
+    const tonicMidi = this._noteToMidi(this.activeScale[0] || "C3") + this._getProgressionRootOffset();
     const formula = this._getChordFormula(this.currentChordKey);
     const chordMidis = formula.map((interval) => tonicMidi + interval);
-    const scaleMidis = this.activeScale.map((note) => this._noteToMidi(note));
+    const scaleMidis = this.activeScale.map((note) => this._noteToMidi(note) + this._getProgressionRootOffset());
 
     return {
       tonicMidi,
@@ -197,17 +369,12 @@ class PianoEngine {
   }
 
   _getChordFormula(chordKey) {
-    const formulas = {
-      i9: [0, 3, 7, 10, 14],
-      iv9: [5, 8, 12, 15, 19],
-      bVII13: [10, 14, 17, 21],
-      IIImaj7: [3, 7, 10, 14],
-      iiHalfDim7: [2, 5, 8, 12],
-      V7b9: [7, 11, 14, 17, 20],
-      V7sus4: [7, 12, 14, 17],
-    };
-
-    return formulas[chordKey] || formulas.i9;
+    const formulas = this.modeProfiles[this.harmonicMode]?.formulas || this.modeProfiles.dorian.formulas;
+    const keys = Object.keys(formulas);
+    if (formulas[chordKey]) {
+      return formulas[chordKey];
+    }
+    return formulas[keys[Math.floor(Math.random() * keys.length)]];
   }
 
   _triggerNoteByFrequency(frequency, start, velocity = 0.85, durationScale = 1) {
@@ -215,8 +382,10 @@ class PianoEngine {
     const attack = timbreSettings.attack;
     const decay = timbreSettings.decay;
     const sustainGain = timbreSettings.sustain * velocity;
-    const sustainHold = (0.16 + Math.random() * 0.2) * durationScale;
-    const release = (timbreSettings.release ?? this.release) * durationScale;
+    const sustainBoost = this.pedalEnabled ? 1.75 : 1;
+    const releaseBoost = this.pedalEnabled ? 2.4 : 1;
+    const sustainHold = (0.16 + Math.random() * 0.2) * durationScale * sustainBoost;
+    const release = (timbreSettings.release ?? this.release) * durationScale * releaseBoost;
     const endTime = start + attack + decay + sustainHold + release;
 
     const noteGain = this.audioContext.createGain();
@@ -253,9 +422,7 @@ class PianoEngine {
     bodyGain.connect(noteGain);
     noteGain.connect(this.outputGain);
 
-    const rootFrequency = this.timbre === "8bits"
-      ? Math.round(frequency / 4) * 4
-      : frequency;
+    const rootFrequency = frequency;
 
     const unisonCount = timbreSettings.unisonCount;
     for (let i = 0; i < unisonCount; i += 1) {
@@ -270,6 +437,19 @@ class PianoEngine {
         gain,
         start,
         endTime,
+        destination: noteFilter,
+      });
+    }
+
+    if (this.subOctaveEnabled) {
+      this._spawnOscVoice({
+        wave: "sine",
+        periodicWave: null,
+        frequency: rootFrequency * 0.5,
+        detuneCents: (Math.random() * 2 - 1) * 1.5,
+        gain: timbreSettings.mainVoiceGain * 0.19,
+        start,
+        endTime: start + attack + decay + sustainHold + release * 0.92,
         destination: noteFilter,
       });
     }
@@ -316,6 +496,8 @@ class PianoEngine {
   _spawnOscVoice(config) {
     const osc = this.audioContext.createOscillator();
     const gain = this.audioContext.createGain();
+    const lfo = this.audioContext.createOscillator();
+    const lfoGain = this.audioContext.createGain();
 
     osc.type = config.wave;
     if (config.periodicWave) {
@@ -324,13 +506,31 @@ class PianoEngine {
 
     osc.frequency.setValueAtTime(config.frequency, config.start);
     osc.detune.setValueAtTime(config.detuneCents, config.start);
+    lfo.type = "sine";
+    const wowRate = 0.12 + this.wowFlutter * 2.2;
+    const wowDepthCents = 1.2 + this.wowFlutter * 30;
+    lfo.frequency.setValueAtTime(wowRate, config.start);
+    lfoGain.gain.setValueAtTime(wowDepthCents, config.start);
     gain.gain.setValueAtTime(Math.max(this.minGain, config.gain), config.start);
 
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc.detune);
     osc.connect(gain);
     gain.connect(config.destination);
 
     osc.start(config.start);
+    lfo.start(config.start);
     osc.stop(config.endTime + 0.06);
+    lfo.stop(config.endTime + 0.06);
+
+    this.activeVoices.add(osc);
+    osc.onended = () => {
+      this.activeVoices.delete(osc);
+      lfo.disconnect();
+      lfoGain.disconnect();
+      osc.disconnect();
+      gain.disconnect();
+    };
   }
 
   _triggerAttackNoise(start, timbreSettings, destination) {
@@ -356,126 +556,89 @@ class PianoEngine {
   }
 
   _getTimbreSettings(timbre) {
-    if (timbre === "nylon") {
-      this.reverbSend.gain.value = 0.09;
-      this.reverbReturnGain.gain.value = 0.12;
+    if (timbre === "flute") {
       return {
         wave: "triangle",
-        periodicWave: this.periodicWaves.nylon,
-        attack: 0.018,
-        decay: 0.22,
-        sustain: 0.052,
-        release: 1.1,
-        peak: 0.24,
-        lowPassMin: 1450,
-        lowPassSpan: 950,
-        qMin: 0.5,
-        qSpan: 0.35,
-        bodyFreq: 220,
-        bodyQ: 1.2,
-        bodyGainDb: 4.4,
-        bodyMix: 0.34,
-        mainVoiceGain: 0.9,
-        unisonCount: 2,
-        unisonSpreadCents: 2.8,
-        inharmonicity: 0.00018,
-        inharmonicMix: 0.052,
-        attackNoise: 0.02,
-        attackNoiseFreq: 2300,
-        attackNoiseQ: 0.9,
-        attackNoiseDecay: 0.04,
-      };
-    }
-
-    if (timbre === "8bits") {
-      this.reverbSend.gain.value = 0.03;
-      this.reverbReturnGain.gain.value = 0.06;
-      return {
-        wave: "square",
         periodicWave: null,
-        attack: 0.01,
-        decay: 0.08,
-        sustain: 0.05,
-        release: 0.35,
-        peak: 0.2,
-        lowPassMin: 1400,
-        lowPassSpan: 600,
-        qMin: 0.4,
-        qSpan: 0.4,
-        bodyFreq: 440,
-        bodyQ: 0.9,
-        bodyGainDb: 1.2,
-        bodyMix: 0.18,
-        mainVoiceGain: 1,
-        unisonCount: 1,
-        unisonSpreadCents: 0,
-        inharmonicity: 0,
-        inharmonicMix: 0,
-        attackNoise: 0,
-        attackNoiseFreq: 2200,
-        attackNoiseQ: 1,
-        attackNoiseDecay: 0.03,
-      };
-    }
-
-    if (timbre === "synth") {
-      this.reverbSend.gain.value = 0.18;
-      this.reverbReturnGain.gain.value = 0.24;
-      return {
-        wave: "sawtooth",
-        periodicWave: this.periodicWaves.synth,
-        attack: 0.065,
-        decay: 0.24,
-        sustain: 0.13,
-        release: 1.8,
-        peak: 0.33,
-        lowPassMin: 1100,
-        lowPassSpan: 1100,
-        qMin: 1.05,
-        qSpan: 0.8,
-        bodyFreq: 360,
-        bodyQ: 1.35,
-        bodyGainDb: 3.1,
-        bodyMix: 0.22,
-        mainVoiceGain: 0.92,
+        attack: 0.08,
+        decay: 0.18,
+        sustain: 0.065,
+        release: 1.65,
+        peak: 0.18,
+        lowPassMin: 1050,
+        lowPassSpan: 360,
+        qMin: 0.8,
+        qSpan: 0.3,
+        bodyFreq: 420,
+        bodyQ: 1.1,
+        bodyGainDb: 2.8,
+        bodyMix: 0.2,
+        mainVoiceGain: 0.58,
         unisonCount: 2,
-        unisonSpreadCents: 5.8,
-        inharmonicity: 0.0001,
-        inharmonicMix: 0.034,
-        attackNoise: 0.004,
-        attackNoiseFreq: 3200,
-        attackNoiseQ: 1.4,
-        attackNoiseDecay: 0.03,
+        unisonSpreadCents: 3.4,
+        inharmonicity: 0.00005,
+        inharmonicMix: 0.01,
+        attackNoise: 0.003,
+        attackNoiseFreq: 2100,
+        attackNoiseQ: 0.8,
+        attackNoiseDecay: 0.06,
       };
     }
 
-    this.reverbSend.gain.value = 0.16;
-    this.reverbReturnGain.gain.value = 0.22;
+    if (timbre === "blend") {
+      return {
+        wave: "triangle",
+        periodicWave: this.periodicWaves.chords,
+        attack: 0.05,
+        decay: 0.2,
+        sustain: 0.08,
+        release: 1.3,
+        peak: 0.19,
+        lowPassMin: 1200,
+        lowPassSpan: 520,
+        qMin: 0.9,
+        qSpan: 0.4,
+        bodyFreq: 340,
+        bodyQ: 1.2,
+        bodyGainDb: 2.9,
+        bodyMix: 0.26,
+        mainVoiceGain: 0.64,
+        unisonCount: 2,
+        unisonSpreadCents: 2.4,
+        inharmonicity: 0.0001,
+        inharmonicMix: 0.03,
+        attackNoise: 0.005,
+        attackNoiseFreq: 2300,
+        attackNoiseQ: 1.1,
+        attackNoiseDecay: 0.02,
+      };
+    }
+
     return {
       wave: "triangle",
-      periodicWave: this.periodicWaves.classico,
-      attack: 0.028,
-      decay: 0.24,
-      sustain: 0.085,
-      release: Math.max(1.4, this.release),
-      peak: 0.3,
-      lowPassMin: 1650,
-      lowPassSpan: 850,
-      qMin: 0.75,
-      qSpan: 0.35,
-      bodyFreq: 305,
-      bodyQ: 1.25,
-      bodyGainDb: 3.6,
-      bodyMix: 0.31,
-      mainVoiceGain: 0.94,
-      unisonCount: 3,
-      unisonSpreadCents: 2.1,
-      inharmonicity: 0.00032,
-      inharmonicMix: 0.08,
-      attackNoise: 0.012,
-      attackNoiseFreq: 2650,
-      attackNoiseQ: 1.15,
-      attackNoiseDecay: 0.036,
+      periodicWave: this.periodicWaves.rhodes,
+      attack: 0.02,
+      decay: 0.2,
+      sustain: 0.078,
+      release: Math.max(1.1, this.release),
+      peak: 0.21,
+      lowPassMin: 1500,
+      lowPassSpan: 780,
+      qMin: 0.7,
+      qSpan: 0.3,
+      bodyFreq: 330,
+      bodyQ: 1.2,
+      bodyGainDb: 3.2,
+      bodyMix: 0.28,
+      mainVoiceGain: 0.68,
+      unisonCount: 2,
+      unisonSpreadCents: 1.8,
+      inharmonicity: 0.0002,
+      inharmonicMix: 0.04,
+      attackNoise: 0.007,
+      attackNoiseFreq: 2400,
+      attackNoiseQ: 1.05,
+      attackNoiseDecay: 0.03,
     };
   }
 
@@ -516,6 +679,19 @@ class PianoEngine {
     }
 
     return buffer;
+  }
+
+  _createWarmthCurve(amount) {
+    const drive = 1 + amount * 26;
+    const samples = 2048;
+    const curve = new Float32Array(samples);
+
+    for (let i = 0; i < samples; i += 1) {
+      const x = (i * 2) / samples - 1;
+      curve[i] = Math.tanh(x * drive) / Math.tanh(drive);
+    }
+
+    return curve;
   }
 
   _noteToMidi(note) {

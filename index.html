@@ -1,170 +1,181 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
   <meta charset="UTF-8">
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#151222" />
+  <meta name="theme-color" content="#121212" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <link rel="icon" type="image/x-icon" href="./assets/favicon.png">
-  <link rel="stylesheet" href="./css/theme.css">
   <link rel="stylesheet" href="./css/layout.css">
   <link rel="stylesheet" href="./css/components.css">
+  <link rel="stylesheet" href="./css/theme.css">
   <script type="module" src="./src/app.js"></script>
   <title>biwave</title>
 </head>
-
-<body>
-  <main class="app-shell">
-    <header class="app-header">
-      <h1><span class="mark">bi</span>wave</h1>
-      <p id="preset-hint">Alpha: batimento 8Hz</p>
+<body data-view="moods" data-playing="false">
+  <main class="spotify-shell">
+    <header class="topbar">
+      <button type="button" id="close-maker" class="nav-back" aria-label="Fechar painel">X</button>
+      <h1><span>bi</span>wave</h1>
+      <p id="vibe-hint">Alpha - batimento 8.0Hz</p>
     </header>
 
-    <section class="visual-stage" aria-label="Visualizador de audio">
-      <canvas id="oscilloscope" width="900" height="220"></canvas>
-
-      <button type="button" id="play-btn" class="button" aria-label="Iniciar reproducao">
-        <svg class="play-icon icon-play" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M8 5v14l11-7z"></path>
-        </svg>
-        <svg class="play-icon icon-pause" viewBox="0 0 24 24" aria-hidden="true">
-          <rect x="7" y="5" width="4" height="14"></rect>
-          <rect x="13" y="5" width="4" height="14"></rect>
-        </svg>
-      </button>
+    <section id="moods-view" class="view view-moods" aria-label="Mood selection">
+      <div class="mood-grid" id="mood-grid">
+        <button type="button" class="mood-card active" data-mood="relax"><strong>relax</strong><small>calm focus</small></button>
+        <button type="button" class="mood-card" data-mood="study"><strong>study</strong><small>flow state</small></button>
+        <button type="button" class="mood-card" data-mood="aggressive"><strong>aggressive</strong><small>high drive</small></button>
+        <button type="button" class="mood-card" data-mood="tense"><strong>tense</strong><small>dark pressure</small></button>
+      </div>
+      <button type="button" id="open-maker" class="cta-maker">LOFI MAKER</button>
     </section>
 
-    <section class="controls-sheet" aria-label="Controles de audio">
-      <div class="master-row global-grid">
-        <label class="control-label" for="master-volume">Volume Geral</label>
-        <input type="range" id="master-volume" class="slider slider-master" min="0" max="1" value="0.78" step="0.01" aria-label="Volume geral">
-        <label class="control-label" for="global-bpm">BPM Global</label>
-        <input type="range" id="global-bpm" class="slider slider-master" min="48" max="120" value="72" step="1" aria-label="BPM global">
-      </div>
+    <section id="control-room" class="view view-control" aria-label="Control room">
+      <section class="master-strip">
+        <label for="master-volume">Volume</label>
+        <input type="range" id="master-volume" min="0" max="1" value="0.78" step="0.01">
+        <span id="master-volume-value">78%</span>
+        <label for="global-bpm">BPM Global</label>
+        <input type="range" id="global-bpm" min="48" max="120" value="102" step="1">
+        <span id="global-bpm-value">102 BPM</span>
+      </section>
 
-      <div class="modules-stack">
-        <details class="control-card module-panel tuning-card" data-panel="tuning">
-          <summary class="module-summary">
-            <h2 class="card-title">Sintonia</h2>
-          </summary>
-          <div class="module-content" aria-label="Area Sintonia">
+      <section class="module-tabs" aria-label="Selecionar modulo">
+        <button type="button" class="module-tab active" data-module-tab="binaural">Binaural</button>
+        <button type="button" class="module-tab" data-module-tab="rhythm">Ritmo</button>
+        <button type="button" class="module-tab" data-module-tab="noise">Ruido</button>
+        <button type="button" class="module-tab" data-module-tab="harmonics">Harmonia</button>
+      </section>
 
-          <div class="control-stack">
-            <label class="control-label" for="preset-select">Preset</label>
-            <select id="preset-select" aria-label="Preset mental"></select>
-          </div>
-
-          <div class="control-stack">
-            <label class="control-label" for="wave-type">Onda</label>
-            <select id="wave-type" aria-label="Tipo de onda">
+      <section class="modules-grid">
+        <article class="module-card" data-module="binaural">
+          <header>
+            <h2>Binaural</h2>
+            <label class="ios-toggle"><input id="binaural-enabled" type="checkbox" checked><span></span></label>
+          </header>
+          <div class="module-body">
+            <label for="vibe-select">Vibe</label>
+            <select id="vibe-select"></select>
+            <label for="wave-type">Wave</label>
+            <select id="wave-type">
               <option value="sine" selected>Sine</option>
               <option value="triangle">Triangle</option>
               <option value="square">Square</option>
               <option value="sawtooth">Sawtooth</option>
             </select>
+            <label for="binaural-offset">Binaural Offset</label>
+            <input type="range" id="binaural-offset" min="0.5" max="30" value="8" step="0.1">
+            <span class="range-readout" data-range-value-for="binaural-offset"></span>
+            <label for="binaural-mix">Binaural</label>
+            <input type="range" id="binaural-mix" min="0" max="0.1" value="0.08" step="0.01">
+            <span class="range-readout" data-range-value-for="binaural-mix"></span>
+            <small id="binaural-cap-hint">Binaural limitado a 8% (10% do Beat)</small>
           </div>
+        </article>
 
-          <div class="control-stack">
-            <label class="control-label" for="binaural-mix">Binaural</label>
-            <input type="range" id="binaural-mix" class="slider tuning-slider" min="0" max="0.1" value="0.08" step="0.01" aria-label="Volume Binaural">
-            <small id="binaural-cap-hint" class="hint-text">Binaural limitado a 8% (10% do Beat)</small>
+        <article class="module-card" data-module="rhythm">
+          <header>
+            <h2>Ritmo</h2>
+            <label class="ios-toggle"><input id="rhythm-enabled" type="checkbox" checked><span></span></label>
+          </header>
+          <div class="module-body">
+            <label for="lofi-volume">Beat Volume</label>
+            <input type="range" id="lofi-volume" min="0" max="1" value="0.82" step="0.01">
+            <span class="range-readout" data-range-value-for="lofi-volume"></span>
+            <label for="lofi-intensity">Intensity</label>
+            <input type="range" id="lofi-intensity" min="0" max="1" value="0.62" step="0.01">
+            <span class="range-readout" data-range-value-for="lofi-intensity"></span>
+            <label for="kick-body-control">Kick Body</label>
+            <input type="range" id="kick-body-control" min="0" max="1" value="0.6" step="0.01">
+            <span class="range-readout" data-range-value-for="kick-body-control"></span>
+            <label for="rhythm-bass-mode">Bass</label>
+            <select id="rhythm-bass-mode">
+              <option value="off">Off</option>
+              <option value="warm" selected>Warm</option>
+              <option value="heavy">Heavy</option>
+            </select>
+            <label for="snare-clap-control">Snare Clap</label>
+            <input type="range" id="snare-clap-control" min="0" max="1" value="0.25" step="0.01">
+            <span class="range-readout" data-range-value-for="snare-clap-control"></span>
+            <label for="hat-motion-select">Hat Motion</label>
+            <select id="hat-motion-select">
+              <option value="eighth">8th (colcheia)</option>
+              <option value="sixteenth" selected>16th (semicolcheia)</option>
+            </select>
+            <div class="row-inline"><span>Groove</span><label class="ios-toggle"><input id="groove-toggle" type="checkbox"><span></span></label></div>
           </div>
+        </article>
 
-          <div class="control-stack">
-            <label class="control-label" for="noise-mix">Brown Noise</label>
-            <input type="range" id="noise-mix" class="slider tuning-slider" min="0" max="0.35" value="0.02" step="0.005" aria-label="Volume Ruido Marrom">
+        <article class="module-card" data-module="noise">
+          <header>
+            <h2>Ruido</h2>
+            <label class="ios-toggle"><input id="noise-enabled" type="checkbox" checked><span></span></label>
+          </header>
+          <div class="module-body">
+            <label for="noise-mix">Street Breath</label>
+            <input type="range" id="noise-mix" min="0" max="0.35" value="0.02" step="0.005">
+            <span class="range-readout" data-range-value-for="noise-mix"></span>
+            <div class="row-inline"><span>Vinyl</span><label class="ios-toggle"><input id="vinyl-toggle" type="checkbox"><span></span></label></div>
+            <label for="tape-hiss-control">Tape Hiss</label>
+            <input type="range" id="tape-hiss-control" min="0" max="1" value="0.3" step="0.01">
+            <span class="range-readout" data-range-value-for="tape-hiss-control"></span>
           </div>
+        </article>
+
+        <article class="module-card" data-module="harmonics">
+          <header>
+            <h2>Harmonics</h2>
+            <label class="ios-toggle"><input id="harmonics-enabled" type="checkbox" checked><span></span></label>
+          </header>
+          <div class="module-body">
+            <label for="harmonic-mode">Scale Mode</label>
+            <select id="harmonic-mode">
+              <option value="dorian" selected>Dorian</option>
+              <option value="lydian">Lydian</option>
+            </select>
+            <label for="progression-motion">Progression Motion</label>
+            <select id="progression-motion">
+              <option value="fourths" selected>Quartas</option>
+              <option value="fifths">Quintas</option>
+            </select>
+            <label for="timbre-select">melody</label>
+            <select id="timbre-select">
+              <option value="rhodes" selected>Rhodes</option>
+              <option value="flute">Flute</option>
+              <option value="blend">Rhodes + Flute</option>
+            </select>
+            <div class="row-inline"><span>Pedal</span><label class="ios-toggle"><input id="pedal-toggle" type="checkbox"><span></span></label></div>
+            <label for="tone-cutoff-control">Low-pass Cutoff</label>
+            <input type="range" id="tone-cutoff-control" min="800" max="2600" value="1200" step="10">
+            <span class="range-readout" data-range-value-for="tone-cutoff-control"></span>
+            <label for="wow-flutter-control">Wow / Flutter</label>
+            <input type="range" id="wow-flutter-control" min="0" max="1" value="0.35" step="0.01">
+            <span class="range-readout" data-range-value-for="wow-flutter-control"></span>
+            <label for="resonance-control">Filter Resonance</label>
+            <input type="range" id="resonance-control" min="0" max="1" value="0.4" step="0.01">
+            <span class="range-readout" data-range-value-for="resonance-control"></span>
+            <label for="warmth-control">Warmth</label>
+            <input type="range" id="warmth-control" min="0" max="1" value="0.28" step="0.01">
+            <span class="range-readout" data-range-value-for="warmth-control"></span>
+            <label for="space-control">Space</label>
+            <input type="range" id="space-control" min="0" max="1" value="0.35" step="0.01">
+            <span class="range-readout" data-range-value-for="space-control"></span>
+            <div class="row-inline"><span>Sub-Octave (-1 oitava)</span><label class="ios-toggle"><input id="suboctave-toggle" type="checkbox"><span></span></label></div>
+            <small>Reforca graves ao duplicar notas uma oitava abaixo.</small>
           </div>
-        </details>
-
-        <details class="control-card module-panel rhythm-card" data-panel="rhythm">
-          <summary class="module-summary">
-            <h2 class="card-title">Ritmo</h2>
-          </summary>
-          <div class="module-content" aria-label="Area Ritmo">
-
-          <div class="control-stack">
-            <label class="control-label" for="lofi-volume">Volume Beat</label>
-            <input type="range" id="lofi-volume" class="slider rhythm-slider" min="0" max="1" value="0.82" step="0.01" aria-label="Volume Beat">
-          </div>
-
-          <div class="control-stack">
-            <label class="control-label" for="lofi-intensity">Intensidade</label>
-            <input type="range" id="lofi-intensity" class="slider rhythm-slider" min="0" max="1" value="0.62" step="0.01" aria-label="Intensidade Beat">
-          </div>
-
-          <div class="toggle-row">
-            <span class="control-label">Vinyl Crackle</span>
-            <label class="switch" for="vinyl-toggle">
-              <input type="checkbox" id="vinyl-toggle" aria-label="Ativar crackle de vinil">
-              <span class="switch-track"><span class="switch-thumb"></span></span>
-            </label>
-          </div>
-
-          <div class="toggle-row">
-            <span class="control-label">Groove</span>
-            <label class="switch" for="groove-toggle">
-              <input type="checkbox" id="groove-toggle" aria-label="Ativar groove switch">
-              <span class="switch-track"><span class="switch-thumb"></span></span>
-            </label>
-          </div>
-
-          <div class="mode-row" aria-label="Modos ritmicos">
-            <button type="button" class="mode-btn active" data-mode="soft" aria-label="Modo Soft">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 20s-6.6-4.2-8.8-8c-1.9-3.2-.8-6.8 2-8.2 2.1-1 4.5-.2 5.8 1.6 1.3-1.8 3.7-2.6 5.8-1.6 2.8 1.4 3.9 5 2 8.2-2.2 3.8-8.8 8-8.8 8z"></path>
-              </svg>
-              <span>Soft</span>
-            </button>
-
-            <button type="button" class="mode-btn" data-mode="jazzy" aria-label="Modo Jazzy">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M14 4l4 2-3 3 2 2-2 2-2-2-3 3-2-4z"></path>
-                <path d="M10 14l-4 4"></path>
-                <path d="M15.5 8.5l-7 7"></path>
-              </svg>
-              <span>Jazzy</span>
-            </button>
-
-            <button type="button" class="mode-btn" data-mode="deep" aria-label="Modo Deep">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M2 13c2 0 2-4 4-4s2 8 4 8 2-8 4-8 2 4 4 4 2-2 4-2"></path>
-              </svg>
-              <span>Deep</span>
-            </button>
-
-            <button type="button" class="mode-btn" data-mode="space" aria-label="Modo Space">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <ellipse cx="12" cy="12" rx="4.5" ry="4"></ellipse>
-                <path d="M4 12c2.5-3 13.5-3 16 0-2.5 3-13.5 3-16 0z"></path>
-                <circle cx="17.6" cy="8.2" r="1"></circle>
-              </svg>
-              <span>Space</span>
-            </button>
-          </div>
-          </div>
-        </details>
-
-        <details class="control-card module-panel harmonics-card" data-panel="harmonics">
-          <summary class="module-summary">
-            <h2 class="card-title">Harmonics</h2>
-          </summary>
-          <div class="module-content" aria-label="Area Harmonics">
-            <div class="control-stack">
-              <label class="control-label" for="piano-timbre">Timbre Piano</label>
-              <select id="piano-timbre" aria-label="Timbre do piano">
-                <option value="classico" selected>Classico</option>
-                <option value="nylon">Violao de Nylon</option>
-                <option value="8bits">8 Bits</option>
-                <option value="synth">Synth</option>
-              </select>
-            </div>
-          </div>
-        </details>
-      </div>
+        </article>
+      </section>
     </section>
+
+    <footer class="now-playing-bar" aria-label="Now Playing">
+      <canvas id="oscilloscope" width="900" height="84"></canvas>
+      <button type="button" id="play-btn" class="play-button" aria-label="Iniciar reproducao">
+        <svg class="play-icon icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
+        <svg class="play-icon icon-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="5" width="4" height="14"></rect><rect x="13" y="5" width="4" height="14"></rect></svg>
+      </button>
+      <div class="sine-wave" id="sine-wave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    </footer>
   </main>
 
   <script>
@@ -172,22 +183,15 @@
       const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
       if (isLocalhost) {
         if ("serviceWorker" in navigator) {
-          navigator.serviceWorker.getRegistrations().then((registrations) => {
-            registrations.forEach((registration) => registration.unregister());
-          });
+          navigator.serviceWorker.getRegistrations().then((registrations) => registrations.forEach((registration) => registration.unregister()));
         }
         return;
       }
-
       if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("sw.js").catch((error) => {
-          console.log("Service Worker falhou:", error);
-        });
+        navigator.serviceWorker.register("sw.js").catch((error) => console.log("Service Worker falhou:", error));
       }
     }
-
     registerServiceWorker();
   </script>
 </body>
-
 </html>

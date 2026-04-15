@@ -8,7 +8,7 @@ class Visualizer {
     this.phase = 0;
     this.pianoPulse = 0;
 
-    this.analyser.fftSize = 2048;
+    this.analyser.fftSize = 1024;
     this.bufferLength = this.analyser.fftSize;
     this.dataArray = new Uint8Array(this.bufferLength);
 
@@ -81,6 +81,11 @@ class Visualizer {
     const dynamicScale = Math.min(1.6, (0.16 + rms * 3.1) * pulseBoost);
 
     this.ctx.clearRect(0, 0, width, height);
+    const bg = this.ctx.createLinearGradient(0, 0, width, height);
+    bg.addColorStop(0, "rgba(6, 9, 14, 0.22)");
+    bg.addColorStop(1, "rgba(18, 24, 33, 0.08)");
+    this.ctx.fillStyle = bg;
+    this.ctx.fillRect(0, 0, width, height);
     this.ctx.lineWidth = Math.max(1.6, width / 420);
     this.ctx.strokeStyle = this.strokeColor;
     this.ctx.shadowColor = this.strokeColor;
@@ -88,7 +93,7 @@ class Visualizer {
     this.ctx.beginPath();
 
     const points = [];
-    const sampleStep = 4;
+    const sampleStep = 6;
 
     for (let i = 0; i < this.bufferLength; i += sampleStep) {
       const x = (i / (this.bufferLength - 1)) * width;
